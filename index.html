@@ -1,146 +1,499 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jadwal Pelajaran AN-NAWA</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b}
-header{background:#14532d;color:white;text-align:center;padding:22px 12px}
-header h1{font-size:23px;margin:0 0 8px}
-header p{margin:5px;font-size:14px}
-main{max-width:1100px;margin:auto;padding:16px}
-.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-button{cursor:pointer;border:0;border-radius:8px;padding:11px 15px;font-size:14px}
-.tab{flex:1;background:#e2e8f0;color:#1e293b;font-weight:bold;min-width:100px}
-.tab.active{background:#166534;color:white}
-.panel{background:white;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #0000000d}
-label{display:block;font-weight:bold;margin:12px 0 8px}
-select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:white;font-size:16px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-.btn-print{background:#166534;color:white}
-.btn-pdf{background:#1d4ed8;color:white}
-.table-wrap{overflow-x:auto;margin-top:16px}
-table{width:100%;border-collapse:collapse;min-width:600px}
-th,td{border:1px solid #94a3b8;padding:11px;text-align:center;font-size:14px}
-th{background:#dcfce7}
-.notice{background:#fef3c7;padding:12px;border-radius:8px;line-height:1.5;font-size:14px}
-.empty{text-align:center;color:#64748b;padding:22px}
-footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
-[hidden]{display:none!important}
-@media print{
- @page{size:A4 landscape;margin:10mm}
- body{background:white;color:black}
- header{background:white!important;color:black!important;padding:8px 0}
- header h1{font-size:18pt}
- main{max-width:none;padding:0}
- .tabs,.actions,.selector,.notice,footer{display:none!important}
- .panel{box-shadow:none;border:0;padding:0;margin:0}
- .table-wrap{overflow:visible}
- table{width:100%;min-width:0;border-collapse:collapse}
- th,td{font-size:10pt;padding:7px}
- th{background:#e5e7eb!important}
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistem Jadwal Pelajaran | AN-NAWA</title>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-dark: #2563eb;
+      --primary-light: #dbeafe;
+      --bg-color: #f4f7f6;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --text-dark: #1f2937;
+      --text-muted: #6b7280;
+      --border-color: #e5e7eb;
+      --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --font-family: 'Inter', 'Poppins', sans-serif;
+      --header-height: 80px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding-bottom: 50px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      color: white;
+      padding: 20px 25px;
+      box-shadow: var(--shadow-soft);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      width: 55px; height: 55px;
+      border-radius: 16px;
+      background: white;
+      padding: 3px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .header-text h1 { font-size: 22px; font-weight: 700; }
+    .header-text p { font-size: 13px; opacity: 0.9; font-weight: 300; margin-top: 2px; }
+
+    .navbar {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 25px;
+      position: sticky;
+      top: var(--header-height);
+      z-index: 99;
+    }
+
+    .nav-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .nav-item { position: relative; }
+
+    .nav-button {
+      border: none; background: transparent;
+      padding: 10px 18px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      color: var(--text-dark); transition: all 0.2s ease;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .nav-button:hover { background-color: var(--primary-light); color: var(--primary-dark); }
+    .nav-button.active { background-color: var(--primary); color: white; }
+
+    .dropdown {
+      display: none; position: absolute;
+      top: calc(100% + 5px); left: 0; width: 220px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.1);
+      padding: 8px; border: 1px solid var(--border-color);
+    }
+
+    .nav-item:hover .dropdown { display: block; }
+
+    .dropdown button {
+      display: block; width: 100%; border: none; background: transparent;
+      text-align: left; padding: 12px 15px; border-radius: 8px;
+      cursor: pointer; font-size: 13.5px; color: var(--text-dark);
+      transition: all 0.2s ease;
+    }
+
+    .dropdown button:hover { background-color: var(--bg-color); color: var(--primary); }
+    .dropdown button.active-sub { background-color: var(--primary-light); color: var(--primary-dark); font-weight: 600; }
+
+    .container { max-width: 1200px; margin: 30px auto 0; padding: 0 25px; width: 100%; }
+
+    .content-card {
+      background: var(--card-bg); border-radius: 20px; padding: 35px;
+      box-shadow: var(--shadow-soft); border: 1px solid var(--border-color);
+    }
+
+    .content-header { 
+      display: flex; align-items: center; justify-content: space-between; 
+      margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); 
+      flex-wrap: wrap; gap: 15px;
+    }
+
+    .header-left-actions { display: flex; align-items: center; gap: 15px; }
+
+    .back-button {
+      border: none; background: var(--border-color); color: var(--text-dark);
+      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+      display: flex; align-items: center; transition: all 0.2s ease;
+    }
+    .back-button:hover { background: var(--primary-light); color: var(--primary-dark); }
+
+    .action-group { display: flex; gap: 10px; }
+
+    .print-btn {
+      border: none; background: #2563eb; color: white;
+      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+    }
+    .print-btn:hover { background: #1d4ed8; }
+
+    .download-btn {
+      border: none; background: #10b981; color: white;
+      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+    }
+    .download-btn:hover { background: #059669; }
+
+    table.jadwal-table {
+      width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 12px;
+    }
+    table.jadwal-table th, table.jadwal-table td {
+      border: 1px solid #9ca3af; padding: 6px 8px; text-align: center; vertical-align: middle; line-height: 1.3;
+    }
+    table.jadwal-table th { background: #1f4e78; color: white; font-weight: 700; }
+    table.jadwal-table tr:nth-child(even) { background-color: #f9fafb; }
+
+    .beranda-modern { animation: fadeIn 0.8s ease-in-out; }
+
+    .hero-banner {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white; padding: 40px 20px; border-radius: 15px;
+      text-align: center; box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
+      margin-bottom: 30px;
+    }
+
+    .hero-logo {
+      width: 80px; height: 80px; object-fit: contain; margin-bottom: 15px;
+      background: white; padding: 8px; border-radius: 50%;
+    }
+
+    .hero-banner h2 { font-size: 24px; font-weight: 600; margin-bottom: 10px; color: white; }
+    .hero-banner p { font-size: 15px; opacity: 0.9; margin: 0 auto; max-width: 850px; line-height: 1.6; }
+
+    .menu-grid-modern {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;
+    }
+
+    .menu-card-modern {
+      background: white; padding: 25px 20px; border-radius: 12px; text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.3s ease;
+      border-top: 4px solid #2a5298; cursor: pointer;
+    }
+
+    .menu-card-modern:hover {
+      transform: translateY(-6px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-top-color: #f39c12;
+    }
+
+    .menu-card-modern i { font-size: 40px; color: #2a5298; margin-bottom: 15px; }
+    .menu-card-modern h3 { font-size: 18px; color: #333; margin-bottom: 8px; font-weight: 600; }
+    .menu-card-modern p { font-size: 14px; color: #666; margin: 0; line-height: 1.5; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .footer {
+      width: 100%; text-align: center; display: block; padding: 30px 0; margin-top: 40px; color: #6b7280; font-size: 13px;
+    }
+
+    @page { size: A4 landscape; margin: 15mm 8mm 14mm 8mm; }
+    
+    @media print {
+      body { background: white; padding: 0; margin: 0; }
+      .header, .navbar, .back-button, .action-group, .dropdown, label, .content-header, select { display: none !important; }
+      .judul-ponpes-otomatis { display: block !important; text-align: center !important; margin-bottom: 5px !important; }
+      .info-terpilih-print { display: block !important; font-size: 13px !important; font-weight: bold !important; margin-bottom: 10px !important; color: #000 !important; }
+      .container, .content-card { max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border: none !important; }
+      .footer { display: block !important; position: fixed !important; bottom: 2mm !important; left: 0; right: 0; text-align: center; font-size: 10px; }
+      table.jadwal-table th { background-color: #1f4e78 !important; color: white !important; }
+    }
+  </style>
 </head>
+
 <body>
-<header>
-<h1>JADWAL PELAJARAN AN-NAWA</h1>
-<p>Pondok Pesantren Modern AN-NAWA</p>
-<p>Tahun Ajaran 2026/2027</p>
-</header>
 
-<main>
-<div class="tabs">
-<button class="tab active" id="tabKelas" onclick="pilihMenu('kelas')">Jadwal per Kelas</button>
-<button class="tab" id="tabGuru" onclick="pilihMenu('guru')">Jadwal per Guru</button>
-<button class="tab" id="tabPiket" onclick="pilihMenu('piket')">Jadwal Piket</button>
-</div>
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <img src="https://lh3.googleusercontent.com/d/1OZheBPHDmVorHmBl4OyiU9YO_v2xv3YE" alt="Logo An-Nawa" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
+      </div>
+      <div class="header-text">
+        <h1>Jadwal Pelajaran</h1>
+        <p>PONPES MODERN AN-NAWA — Sistem Manajemen Jadwal Terpadu</p>
+      </div>
+    </div>
+  </header>
 
-<section class="panel selector" id="menuKelas">
-<label for="kelas">Pilih Kelas</label>
-<select id="kelas" onchange="tampilkanPilihan()">
-<option>1A</option><option>2A</option><option>2B</option>
-<option>3A</option><option>4A</option><option>5A</option><option>6A</option>
-</select>
-</section>
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-item">
+        <button id="btnBeranda" class="nav-button active" onclick="tampilkanBeranda()">
+          <span>🏠</span> Beranda
+        </button>
+      </div>
+      <div class="nav-item">
+        <button class="nav-button" id="btnJadwalMenu">
+          <span>📅</span> Jadwal ▾
+        </button>
+        <div class="dropdown">
+          <button id="subSemua" onclick="tampilkanSemuaJadwal()"><span>📋</span> Semua Jadwal</button>
+          <button id="subKelas" onclick="tampilkanJadwalKelas()"><span>🏫</span> Jadwal per Kelas</button>
+          <button id="subGuru" onclick="tampilkanJadwalGuru()"><span>👨‍🏫</span> Jadwal per Guru</button>
+          <button id="subPiket" onclick="tampilkanJadwalPiket()"><span>🛡️</span> Jadwal Piket</button>
+        </div>
+      </div>
+    </div>
+  </nav>
 
-<section class="panel selector" id="menuGuru" hidden>
-<label for="guru">Pilih Guru</label>
-<select id="guru" onchange="tampilkanPilihan()">
-<option value="">-- Pilih nama guru --</option>
-</select>
-</section>
+  <main class="container">
+    <div id="content"></div>
+  </main>
 
-<section class="panel" id="areaJadwal">
-<h2 id="judul">Jadwal Kelas 1A</h2>
-<div class="actions">
-<button class="btn-print" onclick="window.print()">Print</button>
-<button class="btn-pdf" onclick="simpanPDF()">Save PDF</button>
-</div>
-<div class="notice" id="keterangan">
-Data jadwal belum tersedia. Tabel akan menampilkan data setelah database dihubungkan.
-</div>
-<div class="table-wrap">
-<table>
-<thead id="kepalaTabel">
-<tr><th>Hari</th><th>Jam ke-</th><th>Mata Pelajaran</th><th>Guru</th></tr>
-</thead>
-<tbody id="isiTabel">
-<tr><td colspan="4" class="empty">Belum ada data jadwal.</td></tr>
-</tbody>
-</table>
-</div>
-</section>
-</main>
+  <footer class="footer">
+    &copy; 2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.
+  </footer>
 
-<footer>Sistem Informasi Jadwal Pelajaran AN-NAWA</footer>
+  <script>
+    // --- DATABASE SIMULASI (Dapat disesuaikan dengan data riil pesantren) ---
+    const dataJadwalMaster = [
+      { hari: "Senin", jam: "07:30 - 09:00", kelas: "1 MTs", mapel: "Nahwu / Shorof", guru: "Ust. Bukhori" },
+      { hari: "Senin", jam: "09:15 - 10:45", kelas: "1 MTs", mapel: "Fiqih", guru: "Ust. Ahmad" },
+      { hari: "Selasa", jam: "07:30 - 09:00", kelas: "2 MTs", mapel: "Tauhid", guru: "Ust. Bukhori" },
+      { hari: "Rabu", jam: "07:30 - 09:00", kelas: "1 MA", mapel: "Balaghah", guru: "Ust. Fulan" }
+    ];
 
-<script>
-let menuAktif='kelas';
+    const dataPiketMaster = [
+      { hari: "Senin", waktu: "07:00 - 14:00", petugas: "Ust. Bukhori & Ust. Ahmad" },
+      { hari: "Selasa", waktu: "07:00 - 14:00", petugas: "Ust. Fulan" }
+    ];
 
-function pilihMenu(menu){
- menuAktif=menu;
- document.getElementById('menuKelas').hidden=menu!=='kelas';
- document.getElementById('menuGuru').hidden=menu!=='guru';
+    function clearNav() {
+      document.getElementById('btnBeranda').classList.remove('active');
+      document.getElementById('btnJadwalMenu').classList.remove('active');
+      document.getElementById('subSemua').classList.remove('active-sub');
+      document.getElementById('subKelas').classList.remove('active-sub');
+      document.getElementById('subGuru').classList.remove('active-sub');
+      document.getElementById('subPiket').classList.remove('active-sub');
+    }
 
- document.getElementById('tabKelas').classList.toggle('active',menu==='kelas');
- document.getElementById('tabGuru').classList.toggle('active',menu==='guru');
- document.getElementById('tabPiket').classList.toggle('active',menu==='piket');
+    function cetakFisik() {
+      window.print();
+    }
 
- const judul=document.getElementById('judul');
- const kepala=document.getElementById('kepalaTabel');
- const isi=document.getElementById('isiTabel');
- const ket=document.getElementById('keterangan');
+    function unduhExcel() {
+      let infoJudul = document.getElementById('judul-halaman')?.innerText || 'Jadwal_Pelajaran';
+      let kontenTabel = document.getElementById('tabel-wrapper-isi').innerHTML;
+      let blob = new Blob(['<html><head><meta charset="utf-8"><title>' + infoJudul + '</title><style>table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; } th, td { border: 1px solid #9ca3af; padding: 6px; text-align: center; } th { background: #1f4e78; color: white; }</style></head><body><h2 style="text-align:center;">' + infoJudul + '</h2>' + kontenTabel + '</body></html>'], { type: 'application/vnd.ms-excel' });
+      
+      let link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = infoJudul + '.xls';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
 
- if(menu==='piket'){
-  judul.textContent='JADWAL PIKET';
-  kepala.innerHTML='<tr><th>Hari</th><th>Petugas Piket</th><th>Keterangan</th></tr>';
-  isi.innerHTML='<tr><td colspan="3" class="empty">Data jadwal piket belum dimasukkan.</td></tr>';
-  ket.hidden=true;
- }else{
-  kepala.innerHTML='<tr><th>Hari</th><th>Jam ke-</th><th>Mata Pelajaran</th><th>Guru</th></tr>';
-  ket.hidden=false;
-  ket.textContent='Data jadwal belum tersedia. Tabel akan menampilkan data setelah database dihubungkan.';
-  tampilkanPilihan();
- }
-}
+    function tampilkanBeranda() {
+      clearNav();
+      document.getElementById('btnBeranda').classList.add('active');
+      document.getElementById('content').innerHTML = `
+        <div class="beranda-modern">
+          <div class="hero-banner">
+            <img src="https://lh3.googleusercontent.com/d/1OZheBPHDmVorHmBl4OyiU9YO_v2xv3YE" alt="Logo An-Nawa" class="hero-logo">
+            <h2>Ahlan wa Sahlan, Civitas Akademika ✨</h2>
+            <p>Pusat informasi dan pengelolaan jadwal KBM MTs & MA Pondok Pesantren Modern An-Nawa<br>Tahun Ajaran 2026-2027.</p>
+          </div>
+          <div class="menu-grid-modern">
+            <div class="menu-card-modern" onclick="tampilkanSemuaJadwal()">
+              <i class="fas fa-clipboard-list"></i>
+              <h3>Semua Jadwal</h3>
+              <p>Tampilkan keseluruhan daftar jadwal master yang berlaku.</p>
+            </div>
+            <div class="menu-card-modern" onclick="tampilkanJadwalKelas()">
+              <i class="fas fa-users"></i>
+              <h3>Jadwal per Kelas</h3>
+              <p>Lihat detail jadwal pelajaran berdasarkan rombongan belajar.</p>
+            </div>
+            <div class="menu-card-modern" onclick="tampilkanJadwalGuru()">
+              <i class="fas fa-chalkboard-teacher"></i>
+              <h3>Jadwal per Guru</h3>
+              <p>Cek agenda mengajar harian masing-masing tenaga pendidik.</p>
+            </div>
+            <div class="menu-card-modern" onclick="tampilkanJadwalPiket()">
+              <i class="fas fa-shield-alt"></i>
+              <h3>Jadwal Piket</h3>
+              <p>Cek daftar tugas piket harian guru pengawas.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
-function tampilkanPilihan(){
- if(menuAktif==='kelas'){
-  document.getElementById('judul').textContent=
-   'Jadwal Kelas '+document.getElementById('kelas').value;
- }else if(menuAktif==='guru'){
-  const nama=document.getElementById('guru').value;
-  document.getElementById('judul').textContent=
-   nama?'Jadwal Guru '+nama:'Jadwal Guru';
- }
-}
+    function renderHeaderAksi(judul) {
+      return `
+        <div class="content-header">
+          <div class="header-left-actions">
+            <button class="back-button" onclick="tampilkanBeranda()">← Kembali</button>
+            <h2 id="judul-halaman">${judul}</h2>
+          </div>
+          <div class="action-group">
+            <button class="print-btn" onclick="cetakFisik()">🖨️ Print</button>
+            <button class="download-btn" onclick="unduhExcel()">📥 Save Excel</button>
+          </div>
+        </div>
+      `;
+    }
 
-function simpanPDF(){
- window.print();
-}
-</script>
+    function tampilkanSemuaJadwal() {
+      clearNav();
+      document.getElementById('btnJadwalMenu').classList.add('active');
+      document.getElementById('subSemua').classList.add('active-sub');
+
+      let htmlTable = `
+        <table class="jadwal-table">
+          <thead><tr><th>Hari</th><th>Jam</th><th>Kelas</th><th>Mata Pelajaran</th><th>Pengajar</th></tr></thead>
+          <tbody>
+      `;
+      dataJadwalMaster.forEach(item => {
+        htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td><b>${item.kelas}</b></td><td>${item.mapel}</td><td style="color:#2563eb; font-weight:600;">${item.guru}</td></tr>`;
+      });
+      htmlTable += `</tbody></table>`;
+
+      document.getElementById('content').innerHTML = `
+        <div class="content-card">
+          ${renderHeaderAksi('Semua Jadwal Master')}
+          <div id="tabel-wrapper-isi">${htmlTable}</div>
+        </div>
+      `;
+    }
+
+    function tampilkanJadwalKelas() {
+      clearNav();
+      document.getElementById('btnJadwalMenu').classList.add('active');
+      document.getElementById('subKelas').classList.add('active-sub');
+
+      // Ambil daftar kelas unik
+      const daftarKelas = [...new Set(dataJadwalMaster.map(item => item.kelas))];
+      let optionsHtml = '<option value="">-- Pilih Kelas --</option>';
+      daftarKelas.forEach(k => { optionsHtml += `<option value="${k}">${k}</option>`; });
+
+      document.getElementById('content').innerHTML = `
+        <div class="content-card">
+          ${renderHeaderAksi('Jadwal per Kelas')}
+          <div style="margin-bottom:15px;">
+            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:8px;">Pilih Kelas:</label>
+            <select id="selectKelas" onchange="muatKelas(this.value)" style="width:100%; max-width:300px; padding:10px; border-radius:10px; border:1px solid var(--border-color); background:white; cursor:pointer;">
+              ${optionsHtml}
+            </select>
+          </div>
+          <div id="tabel-wrapper-isi"><p style="color:var(--text-muted); font-style:italic;">Silakan pilih kelas di atas.</p></div>
+        </div>
+      `;
+    }
+
+    function muatKelas(kelas) {
+      if (!kelas) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih kelas di atas.</p>'; return; }
+      
+      const filtered = dataJadwalMaster.filter(item => item.kelas === kelas);
+      let htmlTable = `<div class="info-terpilih-print" style="margin-bottom:10px; font-weight:bold;">Kelas: ${kelas}</div>`;
+      htmlTable += `<table class="jadwal-table"><thead><tr><th>Hari</th><th>Jam</th><th>Mata Pelajaran</th><th>Pengajar</th></tr></thead><tbody>`;
+      
+      if(filtered.length === 0) {
+        htmlTable += `<tr><td colspan="4">Tidak ada jadwal untuk kelas ini.</td></tr>`;
+      } else {
+        filtered.forEach(item => {
+          htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td>${item.mapel}</td><td style="color:#2563eb; font-weight:600;">${item.guru}</td></tr>`;
+        });
+      }
+      htmlTable += `</tbody></table>`;
+      document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
+    }
+
+    function tampilkanJadwalGuru() {
+      clearNav();
+      document.getElementById('btnJadwalMenu').classList.add('active');
+      document.getElementById('subGuru').classList.add('active-sub');
+
+      const daftarGuru = [...new Set(dataJadwalMaster.map(item => item.guru))];
+      let optionsHtml = '<option value="">-- Pilih Guru --</option>';
+      daftarGuru.forEach(g => { optionsHtml += `<option value="${g}">${g}</option>`; });
+
+      document.getElementById('content').innerHTML = `
+        <div class="content-card">
+          ${renderHeaderAksi('Jadwal per Guru')}
+          <div style="margin-bottom:15px;">
+            <label style="font-weight:600; font-size:13px; display:block; margin-bottom:8px;">Pilih Guru:</label>
+            <select id="selectGuru" onchange="muatGuru(this.value)" style="width:100%; max-width:300px; padding:10px; border-radius:10px; border:1px solid var(--border-color); background:white; cursor:pointer;">
+              ${optionsHtml}
+            </select>
+          </div>
+          <div id="tabel-wrapper-isi"><p style="color:var(--text-muted); font-style:italic;">Silakan pilih guru di atas.</p></div>
+        </div>
+      `;
+    }
+
+    function muatGuru(guru) {
+      if (!guru) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih guru di atas.</p>'; return; }
+      
+      const filtered = dataJadwalMaster.filter(item => item.guru === guru);
+      let totalJP = filtered.length;
+
+      let htmlTable = `
+        <div class="info-terpilih-print" style="margin-bottom: 12px; font-size: 14px; color: #1e293b; display:flex; justify-content:space-between; align-items:center;">
+          <div><b>Nama Guru:</b> ${guru}</div>
+          <div style="background: #e0f2fe; padding: 4px 12px; border-radius: 6px; color: #0369a1; font-weight:600;">Total Mengajar: ${totalJP} Sesi</div>
+        </div>
+      `;
+      htmlTable += `<table class="jadwal-table"><thead><tr><th>Hari</th><th>Jam</th><th>Kelas</th><th>Mata Pelajaran</th></tr></thead><tbody>`;
+      
+      if(filtered.length === 0) {
+        htmlTable += `<tr><td colspan="4">Tidak ada jadwal mengajar.</td></tr>`;
+      } else {
+        filtered.forEach(item => {
+          htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td><b>${item.kelas}</b></td><td>${item.mapel}</td></tr>`;
+        });
+      }
+      htmlTable += `</tbody></table>`;
+      document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
+    }
+
+    function tampilkanJadwalPiket() {
+      clearNav();
+      document.getElementById('btnJadwalMenu').classList.add('active');
+      document.getElementById('subPiket').classList.add('active-sub');
+
+      let htmlTable = `
+        <table class="jadwal-table">
+          <thead><tr><th>Hari</th><th>Waktu Tugas</th><th>Petugas Piket</th></tr></thead>
+          <tbody>
+      `;
+      dataPiketMaster.forEach(item => {
+        htmlTable += `<tr><td>${item.hari}</td><td>${item.waktu}</td><td style="font-weight:600; color:#10b981;">${item.petugas}</td></tr>`;
+      });
+      htmlTable += `</tbody></table>`;
+
+      document.getElementById('content').innerHTML = `
+        <div class="content-card">
+          ${renderHeaderAksi('Jadwal Piket Guru')}
+          <div id="tabel-wrapper-isi">${htmlTable}</div>
+        </div>
+      `;
+    }
+
+    // Auto-load beranda saat pertama kali dibuka
+    window.addEventListener('load', function() {
+      tampilkanBeranda();
+    });
+  </script>
 </body>
 </html>
