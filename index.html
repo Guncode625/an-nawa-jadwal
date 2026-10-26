@@ -1,125 +1,146 @@
-
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Jadwal Pelajaran AN-NAWA</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f1f5f9;
-      color: #1e293b;
-    }
-    header {
-      background: #14532d;
-      color: white;
-      padding: 24px 16px;
-      text-align: center;
-    }
-    header h1 { margin: 0 0 8px; font-size: 24px; }
-    header p { margin: 0; font-size: 14px; }
-    main { max-width: 1000px; margin: auto; padding: 18px; }
-    .panel {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      margin-bottom: 18px;
-      box-shadow: 0 2px 8px #0000000d;
-    }
-    label { display: block; margin-bottom: 8px; font-weight: bold; }
-    select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background: white;
-      font-size: 16px;
-    }
-    .notice {
-      background: #fef3c7;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .table-wrap { overflow-x: auto; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px;
-    }
-    th, td {
-      border: 1px solid #e2e8f0;
-      padding: 12px 10px;
-      text-align: left;
-      font-size: 14px;
-    }
-    th { background: #dcfce7; }
-    .empty { text-align: center; color: #64748b; padding: 25px; }
-    footer { text-align: center; padding: 20px; color: #64748b; font-size: 12px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jadwal Pelajaran AN-NAWA</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#1e293b}
+header{background:#14532d;color:white;text-align:center;padding:22px 12px}
+header h1{font-size:23px;margin:0 0 8px}
+header p{margin:5px;font-size:14px}
+main{max-width:1100px;margin:auto;padding:16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+button{cursor:pointer;border:0;border-radius:8px;padding:11px 15px;font-size:14px}
+.tab{flex:1;background:#e2e8f0;color:#1e293b;font-weight:bold;min-width:100px}
+.tab.active{background:#166534;color:white}
+.panel{background:white;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 2px 8px #0000000d}
+label{display:block;font-weight:bold;margin:12px 0 8px}
+select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:white;font-size:16px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.btn-print{background:#166534;color:white}
+.btn-pdf{background:#1d4ed8;color:white}
+.table-wrap{overflow-x:auto;margin-top:16px}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{border:1px solid #94a3b8;padding:11px;text-align:center;font-size:14px}
+th{background:#dcfce7}
+.notice{background:#fef3c7;padding:12px;border-radius:8px;line-height:1.5;font-size:14px}
+.empty{text-align:center;color:#64748b;padding:22px}
+footer{text-align:center;padding:20px;color:#64748b;font-size:12px}
+[hidden]{display:none!important}
+@media print{
+ @page{size:A4 landscape;margin:10mm}
+ body{background:white;color:black}
+ header{background:white!important;color:black!important;padding:8px 0}
+ header h1{font-size:18pt}
+ main{max-width:none;padding:0}
+ .tabs,.actions,.selector,.notice,footer{display:none!important}
+ .panel{box-shadow:none;border:0;padding:0;margin:0}
+ .table-wrap{overflow:visible}
+ table{width:100%;min-width:0;border-collapse:collapse}
+ th,td{font-size:10pt;padding:7px}
+ th{background:#e5e7eb!important}
+}
+</style>
 </head>
 <body>
-  <header>
-    <h1>JADWAL PELAJARAN AN-NAWA</h1>
-    <p>Pondok Pesantren Modern AN-NAWA</p>
-    <p>Tahun Ajaran 2026/2027</p>
-  </header>
+<header>
+<h1>JADWAL PELAJARAN AN-NAWA</h1>
+<p>Pondok Pesantren Modern AN-NAWA</p>
+<p>Tahun Ajaran 2026/2027</p>
+</header>
 
-  <main>
-    <section class="panel">
-      <label for="kelas">Pilih Kelas</label>
-      <select id="kelas" onchange="tampilkanJadwal()">
-        <option value="1A">Kelas 1A</option>
-        <option value="2A">Kelas 2A</option>
-        <option value="2B">Kelas 2B</option>
-        <option value="3A">Kelas 3A</option>
-        <option value="4A">Kelas 4A</option>
-        <option value="5A">Kelas 5A</option>
-        <option value="6A">Kelas 6A</option>
-      </select>
-    </section>
+<main>
+<div class="tabs">
+<button class="tab active" id="tabKelas" onclick="pilihMenu('kelas')">Jadwal per Kelas</button>
+<button class="tab" id="tabGuru" onclick="pilihMenu('guru')">Jadwal per Guru</button>
+<button class="tab" id="tabPiket" onclick="pilihMenu('piket')">Jadwal Piket</button>
+</div>
 
-    <section class="panel">
-      <h2 id="judul">Jadwal Kelas 1A</h2>
-      <div class="notice">
-        Halaman awal sudah tersedia. Jadwal pelajaran sebenarnya akan
-        ditampilkan setelah database dan halaman admin dihubungkan.
-      </div>
-      <div class="table-wrap" style="margin-top:16px">
-        <table>
-          <thead>
-            <tr>
-              <th>Hari</th>
-              <th>Jam ke-</th>
-              <th>Mata Pelajaran</th>
-              <th>Guru</th>
-            </tr>
-          </thead>
-          <tbody id="isiJadwal">
-            <tr><td colspan="4" class="empty">
-              Data jadwal belum dimasukkan.
-            </td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+<section class="panel selector" id="menuKelas">
+<label for="kelas">Pilih Kelas</label>
+<select id="kelas" onchange="tampilkanPilihan()">
+<option>1A</option><option>2A</option><option>2B</option>
+<option>3A</option><option>4A</option><option>5A</option><option>6A</option>
+</select>
+</section>
 
-  <footer>
-    Sistem Informasi Jadwal Pelajaran AN-NAWA
-  </footer>
+<section class="panel selector" id="menuGuru" hidden>
+<label for="guru">Pilih Guru</label>
+<select id="guru" onchange="tampilkanPilihan()">
+<option value="">-- Pilih nama guru --</option>
+</select>
+</section>
 
-  <script>
-    function tampilkanJadwal() {
-      const kelas = document.getElementById("kelas").value;
-      document.getElementById("judul").textContent =
-        "Jadwal Kelas " + kelas;
-    }
-  </script>
+<section class="panel" id="areaJadwal">
+<h2 id="judul">Jadwal Kelas 1A</h2>
+<div class="actions">
+<button class="btn-print" onclick="window.print()">Print</button>
+<button class="btn-pdf" onclick="simpanPDF()">Save PDF</button>
+</div>
+<div class="notice" id="keterangan">
+Data jadwal belum tersedia. Tabel akan menampilkan data setelah database dihubungkan.
+</div>
+<div class="table-wrap">
+<table>
+<thead id="kepalaTabel">
+<tr><th>Hari</th><th>Jam ke-</th><th>Mata Pelajaran</th><th>Guru</th></tr>
+</thead>
+<tbody id="isiTabel">
+<tr><td colspan="4" class="empty">Belum ada data jadwal.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+
+<footer>Sistem Informasi Jadwal Pelajaran AN-NAWA</footer>
+
+<script>
+let menuAktif='kelas';
+
+function pilihMenu(menu){
+ menuAktif=menu;
+ document.getElementById('menuKelas').hidden=menu!=='kelas';
+ document.getElementById('menuGuru').hidden=menu!=='guru';
+
+ document.getElementById('tabKelas').classList.toggle('active',menu==='kelas');
+ document.getElementById('tabGuru').classList.toggle('active',menu==='guru');
+ document.getElementById('tabPiket').classList.toggle('active',menu==='piket');
+
+ const judul=document.getElementById('judul');
+ const kepala=document.getElementById('kepalaTabel');
+ const isi=document.getElementById('isiTabel');
+ const ket=document.getElementById('keterangan');
+
+ if(menu==='piket'){
+  judul.textContent='JADWAL PIKET';
+  kepala.innerHTML='<tr><th>Hari</th><th>Petugas Piket</th><th>Keterangan</th></tr>';
+  isi.innerHTML='<tr><td colspan="3" class="empty">Data jadwal piket belum dimasukkan.</td></tr>';
+  ket.hidden=true;
+ }else{
+  kepala.innerHTML='<tr><th>Hari</th><th>Jam ke-</th><th>Mata Pelajaran</th><th>Guru</th></tr>';
+  ket.hidden=false;
+  ket.textContent='Data jadwal belum tersedia. Tabel akan menampilkan data setelah database dihubungkan.';
+  tampilkanPilihan();
+ }
+}
+
+function tampilkanPilihan(){
+ if(menuAktif==='kelas'){
+  document.getElementById('judul').textContent=
+   'Jadwal Kelas '+document.getElementById('kelas').value;
+ }else if(menuAktif==='guru'){
+  const nama=document.getElementById('guru').value;
+  document.getElementById('judul').textContent=
+   nama?'Jadwal Guru '+nama:'Jadwal Guru';
+ }
+}
+
+function simpanPDF(){
+ window.print();
+}
+</script>
 </body>
 </html>
