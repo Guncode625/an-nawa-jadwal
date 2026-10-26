@@ -1,1 +1,125 @@
 
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Jadwal Pelajaran AN-NAWA</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      color: #1e293b;
+    }
+    header {
+      background: #14532d;
+      color: white;
+      padding: 24px 16px;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 8px; font-size: 24px; }
+    header p { margin: 0; font-size: 14px; }
+    main { max-width: 1000px; margin: auto; padding: 18px; }
+    .panel {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 8px #0000000d;
+    }
+    label { display: block; margin-bottom: 8px; font-weight: bold; }
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      background: white;
+      font-size: 16px;
+    }
+    .notice {
+      background: #fef3c7;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 12px 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th { background: #dcfce7; }
+    .empty { text-align: center; color: #64748b; padding: 25px; }
+    footer { text-align: center; padding: 20px; color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>JADWAL PELAJARAN AN-NAWA</h1>
+    <p>Pondok Pesantren Modern AN-NAWA</p>
+    <p>Tahun Ajaran 2026/2027</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <label for="kelas">Pilih Kelas</label>
+      <select id="kelas" onchange="tampilkanJadwal()">
+        <option value="1A">Kelas 1A</option>
+        <option value="2A">Kelas 2A</option>
+        <option value="2B">Kelas 2B</option>
+        <option value="3A">Kelas 3A</option>
+        <option value="4A">Kelas 4A</option>
+        <option value="5A">Kelas 5A</option>
+        <option value="6A">Kelas 6A</option>
+      </select>
+    </section>
+
+    <section class="panel">
+      <h2 id="judul">Jadwal Kelas 1A</h2>
+      <div class="notice">
+        Halaman awal sudah tersedia. Jadwal pelajaran sebenarnya akan
+        ditampilkan setelah database dan halaman admin dihubungkan.
+      </div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table>
+          <thead>
+            <tr>
+              <th>Hari</th>
+              <th>Jam ke-</th>
+              <th>Mata Pelajaran</th>
+              <th>Guru</th>
+            </tr>
+          </thead>
+          <tbody id="isiJadwal">
+            <tr><td colspan="4" class="empty">
+              Data jadwal belum dimasukkan.
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Sistem Informasi Jadwal Pelajaran AN-NAWA
+  </footer>
+
+  <script>
+    function tampilkanJadwal() {
+      const kelas = document.getElementById("kelas").value;
+      document.getElementById("judul").textContent =
+        "Jadwal Kelas " + kelas;
+    }
+  </script>
+</body>
+</html>
