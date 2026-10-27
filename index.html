@@ -100,7 +100,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 
 @page {
   size: A4 landscape;
-  margin: 6mm 8mm;
+  margin: 8mm 10mm;
 }
 
 @media print {
@@ -125,7 +125,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
-    height: 100vh !important;
+    height: 100% !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -185,6 +185,8 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     margin: 0 !important;
     padding: 0 !important;
   }
+  
+  /* PENGATURAN UMUM TABEL JADWAL KELAS & GURU */
   table.schedule-table {
     width: 100% !important;
     height: 100% !important;
@@ -200,15 +202,33 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     text-align: center !important;
     vertical-align: middle !important;
     font-size: 8px !important;
-    height: 1fr !important;
   }
+
+  /* KHUSUS TABEL PIKET: MENJADI 1/2 HALAMAN SECARA PROPORSIONAL */
+  #piketView table {
+    width: 100% !important;
+    height: auto !important;
+    flex: 0 1 auto !important;
+    margin: 0 auto !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
+  }
+  #piketView th, #piketView td {
+    border: 1px solid #333 !important;
+    padding: 10px 8px !important;
+    color: #111 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    font-size: 9px !important;
+  }
+
   thead { display: table-header-group !important; }
   thead th { background: #dcece0 !important; color: #111 !important; font-size: 9px !important; }
+  
   .schedule-table th:first-child, .schedule-table td:first-child { width: 6% !important; }
   .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 12% !important; }
-  .schedule-cell {
-    white-space: normal !important;
-  }
+  
+  .schedule-cell { white-space: normal !important; }
   .schedule-cell strong {
     display: block !important;
     margin: 0 !important;
@@ -235,18 +255,17 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .print-footer {
     display: block !important;
     width: 100% !important;
-    margin-top: 4px !important;
-    padding-top: 3px !important;
+    margin-top: 15px !important;
+    padding-top: 4px !important;
     border-top: 1px solid #bbb !important;
     text-align: center !important;
     color: #444 !important;
-    font-size: 7px !important;
+    font-size: 7.5px !important;
   }
   tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
-  #piketTable table { table-layout: auto !important; font-size: 8px !important; }
 }
 
 @media (max-width:650px) {
