@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -246,6 +247,24 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     background:#f0f0f0 !important;
     color:#111 !important;
     font-weight:700 !important;
+  }
+  /* Footer tidak fixed agar tidak memicu halaman tambahan */
+  .print-footer {
+    display:block !important;
+    position:static !important;
+    width:100% !important;
+    margin-top:4px !important;
+    padding-top:3px !important;
+    border-top:1px solid #aaa !important;
+    text-align:center !important;
+    color:#333 !important;
+    font-size:7px !important;
+    line-height:1.1 !important;
+    background:white !important;
+  }
+  tr {
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
   }
   /* Jadwal piket tetap memakai seluruh kolom Excel */
   #piketTable table { table-layout:auto !important;font-size:8px !important; }
