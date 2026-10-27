@@ -95,7 +95,7 @@ main { max-width:1200px;padding:24px 18px 40px;margin:auto; }
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(7,94,67,0.12);
   border-top-color: var(--gold);
-}/* Efek animasi lembut agar ikon tampak hidup dan berwarna */
+}
 .dash-card i {
   font-size: 38px;
   background: linear-gradient(135deg, var(--green), var(--gold));
@@ -159,7 +159,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 
 @page {
   size: A4 landscape;
-  margin: 18mm 10mm 8mm 10mm; /* Margin atas diperbesar (18mm) khusus untuk ruang hekter/jilid atas */
+  margin: 18mm 10mm 8mm 10mm;
 }
 
 @media print {
@@ -210,7 +210,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .print-header {
     display: block !important;
     text-align: center !important;
-    margin: 16px 0 6px !important; /* Tambahan ruang kosong atas agar judul aman dari hekter */
+    margin: 16px 0 6px !important;
   }
   .print-header h1 {
     margin: 0 !important;
@@ -245,7 +245,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     margin: 0 !important;
     padding: 0 !important;
   }
-  
   table.schedule-table {
     width: 100% !important;
     height: 100% !important;
@@ -262,7 +261,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     vertical-align: middle !important;
     font-size: 8px !important;
   }
-
   #piketView table {
     width: 100% !important;
     height: auto !important;
@@ -279,13 +277,10 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     vertical-align: middle !important;
     font-size: 9px !important;
   }
-
   thead { display: table-header-group !important; }
   thead th { background: #dcece0 !important; color: #111 !important; font-size: 9px !important; }
-  
   .schedule-table th:first-child, .schedule-table td:first-child { width: 6% !important; }
   .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 12% !important; }
-  
   .schedule-cell { white-space: normal !important; }
   .schedule-cell strong {
     display: block !important;
@@ -341,7 +336,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 <header class="site-header">
   <div class="header-inner">
     <img class="logo"
-      src="https://lh3.googleusercontent.com/d/1OZheBPHDmVorHmBl4OyiU9YO_v2xv3YE"
+      src="logo.png"
       alt="Logo resmi An-Nawa" onerror="this.style.display='none'">
     <div class="brand">
       <h1>PONPES MODERN AN-NAWA</h1>
@@ -921,6 +916,9 @@ function printCurrentView() {
 
 loadWorkbook();
 </script>
+
+<!-- Skrip Registrasi Service Worker PWA -->
+<script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
