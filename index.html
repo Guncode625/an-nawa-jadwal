@@ -9,6 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Pustaka SheetJS untuk membaca file Excel DATABASE secara langsung -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -157,7 +160,7 @@
       width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 12px;
     }
     table.jadwal-table th, table.jadwal-table td {
-      border: 1px solid #9ca3af; padding: 6px 8px; text-align: center; vertical-align: middle; line-height: 1.3;
+      border: 1px solid #9ca3af; padding: 8px 10px; text-align: center; vertical-align: middle; line-height: 1.4;
     }
     table.jadwal-table th { background: #1f4e78; color: white; font-weight: 700; }
     table.jadwal-table tr:nth-child(even) { background-color: #f9fafb; }
@@ -256,7 +259,7 @@
   </nav>
 
   <main class="container">
-    <div id="content"></div>
+    <div id="content"><p style="text-align:center; padding: 40px; color:var(--text-muted);">Memuat data dari file DATABASE...</p></div>
   </main>
 
   <footer class="footer">
@@ -264,18 +267,43 @@
   </footer>
 
   <script>
-    // --- DATABASE SIMULASI (Dapat disesuaikan dengan data riil pesantren) ---
-    const dataJadwalMaster = [
-      { hari: "Senin", jam: "07:30 - 09:00", kelas: "1 MTs", mapel: "Nahwu / Shorof", guru: "Ust. Bukhori" },
-      { hari: "Senin", jam: "09:15 - 10:45", kelas: "1 MTs", mapel: "Fiqih", guru: "Ust. Ahmad" },
-      { hari: "Selasa", jam: "07:30 - 09:00", kelas: "2 MTs", mapel: "Tauhid", guru: "Ust. Bukhori" },
-      { hari: "Rabu", jam: "07:30 - 09:00", kelas: "1 MA", mapel: "Balaghah", guru: "Ust. Fulan" }
-    ];
+    let dataJadwalMaster = [];
+    let dataPiketMaster = [];
+    const daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-    const dataPiketMaster = [
-      { hari: "Senin", waktu: "07:00 - 14:00", petugas: "Ust. Bukhori & Ust. Ahmad" },
-      { hari: "Selasa", waktu: "07:00 - 14:00", petugas: "Ust. Fulan" }
-    ];
+    // Fungsi otomatis membaca file Excel bernama "DATABASE" di repository GitHub
+    async function muatDatabaseExcel() {
+      try {
+        let response = await fetch('DATABASE');
+        if (!response.ok) {
+          // Coba dengan ekstensi .xlsx jika file tanpa ekstensi gagal
+          response = await fetch('DATABASE.xlsx');
+        }
+        let arrayBuffer = await response.arrayBuffer();
+        let workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        
+        // Membaca sheet "JADWAL" jika ada, atau sheet pertama
+        let sheetJadwalName = workbook.SheetNames.includes('JADWAL') ? 'JADWAL' : workbook.SheetNames[0];
+        let sheetJadwal = workbook.Sheets[sheetJadwalName];
+        dataJadwalMaster = XLSX.utils.sheet_to_json(sheetJadwal);
+
+        // Membaca sheet "Jadwal piket" jika ada
+        if (workbook.SheetNames.includes('Jadwal piket')) {
+          let sheetPiket = workbook.Sheets['Jadwal piket'];
+          dataPiketMaster = XLSX.utils.sheet_to_json(sheetPiket);
+        }
+
+        tampilkanBeranda();
+      } catch (error) {
+        console.error("Gagal memuat file DATABASE:", error);
+        document.getElementById('content').innerHTML = `
+          <div class="content-card" style="text-align: center; color: #dc2626;">
+            <h3>Gagal Memuat File DATABASE</h3>
+            <p>Pastikan file Excel dengan nama <b>DATABASE</b> sudah di-upload ke repository GitHub Anda.</p>
+          </div>
+        `;
+      }
+    }
 
     function clearNav() {
       document.getElementById('btnBeranda').classList.remove('active');
@@ -286,9 +314,7 @@
       document.getElementById('subPiket').classList.remove('active-sub');
     }
 
-    function cetakFisik() {
-      window.print();
-    }
+    function cetakFisik() { window.print(); }
 
     function unduhExcel() {
       let infoJudul = document.getElementById('judul-halaman')?.innerText || 'Jadwal_Pelajaran';
@@ -317,7 +343,7 @@
             <div class="menu-card-modern" onclick="tampilkanSemuaJadwal()">
               <i class="fas fa-clipboard-list"></i>
               <h3>Semua Jadwal</h3>
-              <p>Tampilkan keseluruhan daftar jadwal master yang berlaku.</p>
+              <p>Tampilkan keseluruhan daftar jadwal master dari DATABASE.</p>
             </div>
             <div class="menu-card-modern" onclick="tampilkanJadwalKelas()">
               <i class="fas fa-users"></i>
@@ -361,11 +387,11 @@
 
       let htmlTable = `
         <table class="jadwal-table">
-          <thead><tr><th>Hari</th><th>Jam</th><th>Kelas</th><th>Mata Pelajaran</th><th>Pengajar</th></tr></thead>
+          <thead><tr><th>Hari</th><th>JP</th><th>Mulai</th><th>Selesai</th><th>Guru</th><th>Mata Pelajaran</th><th>Kelas</th></tr></thead>
           <tbody>
       `;
       dataJadwalMaster.forEach(item => {
-        htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td><b>${item.kelas}</b></td><td>${item.mapel}</td><td style="color:#2563eb; font-weight:600;">${item.guru}</td></tr>`;
+        htmlTable += `<tr><td>${item.HARI || item.hari || ''}</td><td>${item.JP || item.jp || ''}</td><td>${item.MULAI || item.mulai || ''}</td><td>${item.SELESAI || item.selesai || ''}</td><td style="color:#2563eb; font-weight:600;">${item.GURU || item.guru || ''}</td><td>${item.MAPEL || item.mapel || ''}</td><td><b>${item.KELAS || item.kelas || ''}</b></td></tr>`;
       });
       htmlTable += `</tbody></table>`;
 
@@ -382,8 +408,7 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subKelas').classList.add('active-sub');
 
-      // Ambil daftar kelas unik
-      const daftarKelas = [...new Set(dataJadwalMaster.map(item => item.kelas))];
+      const daftarKelas = [...new Set(dataJadwalMaster.map(item => item.KELAS || item.kelas).filter(k => k && k !== 'SEMUA'))];
       let optionsHtml = '<option value="">-- Pilih Kelas --</option>';
       daftarKelas.forEach(k => { optionsHtml += `<option value="${k}">${k}</option>`; });
 
@@ -404,17 +429,38 @@
     function muatKelas(kelas) {
       if (!kelas) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih kelas di atas.</p>'; return; }
       
-      const filtered = dataJadwalMaster.filter(item => item.kelas === kelas);
       let htmlTable = `<div class="info-terpilih-print" style="margin-bottom:10px; font-weight:bold;">Kelas: ${kelas}</div>`;
-      htmlTable += `<table class="jadwal-table"><thead><tr><th>Hari</th><th>Jam</th><th>Mata Pelajaran</th><th>Pengajar</th></tr></thead><tbody>`;
-      
-      if(filtered.length === 0) {
-        htmlTable += `<tr><td colspan="4">Tidak ada jadwal untuk kelas ini.</td></tr>`;
-      } else {
-        filtered.forEach(item => {
-          htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td>${item.mapel}</td><td style="color:#2563eb; font-weight:600;">${item.guru}</td></tr>`;
+      htmlTable += `<table class="jadwal-table"><thead><tr><th>Jam Ke</th><th>Waktu</th>`;
+      daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
+      htmlTable += `</tr></thead><tbody>`;
+
+      // Ambil list waktu unik dari data
+      const listWaktu = [...new Set(dataJadwalMaster.map(i => (i.MULAI || i.mulai) + ' - ' + (i.SELESAI || i.selesai)))];
+
+      listWaktu.forEach(waktuStr => {
+        if (!waktuStr || waktuStr === 'undefined - undefined') return;
+        const [mulai] = waktuStr.split(' - ');
+        const sampleMatch = dataJadwalMaster.find(i => (i.MULAI || i.mulai) === mulai);
+        const jpVal = sampleMatch ? (sampleMatch.JP || sampleMatch.jp || '-') : '-';
+
+        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
+        daftarHari.forEach(h => {
+          const match = dataJadwalMaster.find(i => (i.HARI || i.hari) === h && (i.MULAI || i.mulai) === mulai && ((i.KELAS || i.kelas) === kelas || (i.KELAS || i.kelas) === 'SEMUA'));
+          if (match) {
+            let mapelText = match.MAPEL || match.mapel || '';
+            let guruText = match.GURU || match.guru || '';
+            if ((match.KELAS || match.kelas) === 'SEMUA') {
+              htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${mapelText}</td>`;
+            } else {
+              htmlTable += `<td>${mapelText}<br><span style="color:#2563eb; font-size:11px;">(${guruText})</span></td>`;
+            }
+          } else {
+            htmlTable += `<td>-</td>`;
+          }
         });
-      }
+        htmlTable += `</tr>`;
+      });
+
       htmlTable += `</tbody></table>`;
       document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
     }
@@ -424,7 +470,7 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subGuru').classList.add('active-sub');
 
-      const daftarGuru = [...new Set(dataJadwalMaster.map(item => item.guru))];
+      const daftarGuru = [...new Set(dataJadwalMaster.map(item => item.GURU || item.guru).filter(g => g && g !== '-'))];
       let optionsHtml = '<option value="">-- Pilih Guru --</option>';
       daftarGuru.forEach(g => { optionsHtml += `<option value="${g}">${g}</option>`; });
 
@@ -445,7 +491,7 @@
     function muatGuru(guru) {
       if (!guru) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih guru di atas.</p>'; return; }
       
-      const filtered = dataJadwalMaster.filter(item => item.guru === guru);
+      const filtered = dataJadwalMaster.filter(item => (item.GURU || item.guru) === guru);
       let totalJP = filtered.length;
 
       let htmlTable = `
@@ -454,15 +500,36 @@
           <div style="background: #e0f2fe; padding: 4px 12px; border-radius: 6px; color: #0369a1; font-weight:600;">Total Mengajar: ${totalJP} Sesi</div>
         </div>
       `;
-      htmlTable += `<table class="jadwal-table"><thead><tr><th>Hari</th><th>Jam</th><th>Kelas</th><th>Mata Pelajaran</th></tr></thead><tbody>`;
-      
-      if(filtered.length === 0) {
-        htmlTable += `<tr><td colspan="4">Tidak ada jadwal mengajar.</td></tr>`;
-      } else {
-        filtered.forEach(item => {
-          htmlTable += `<tr><td>${item.hari}</td><td>${item.jam}</td><td><b>${item.kelas}</b></td><td>${item.mapel}</td></tr>`;
+      htmlTable += `<table class="jadwal-table"><thead><tr><th>Jam Ke</th><th>Waktu</th>`;
+      daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
+      htmlTable += `</tr></thead><tbody>`;
+
+      const listWaktu = [...new Set(dataJadwalMaster.map(i => (i.MULAI || i.mulai) + ' - ' + (i.SELESAI || i.selesai)))];
+
+      listWaktu.forEach(waktuStr => {
+        if (!waktuStr || waktuStr === 'undefined - undefined') return;
+        const [mulai] = waktuStr.split(' - ');
+        const sampleMatch = dataJadwalMaster.find(i => (i.MULAI || i.mulai) === mulai);
+        const jpVal = sampleMatch ? (sampleMatch.JP || sampleMatch.jp || '-') : '-';
+
+        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
+        daftarHari.forEach(h => {
+          const match = dataJadwalMaster.find(i => (i.HARI || i.hari) === h && (i.MULAI || i.mulai) === mulai && ((i.GURU || i.guru) === guru || (i.KELAS || i.kelas) === 'SEMUA'));
+          if (match) {
+            let kelasText = match.KELAS || match.kelas || '';
+            let mapelText = match.MAPEL || match.mapel || '';
+            if (kelasText === 'SEMUA') {
+              htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${mapelText}</td>`;
+            } else {
+              htmlTable += `<td>${kelasText}<br><span style="color:#2563eb; font-size:11px;">(${mapelText})</span></td>`;
+            }
+          } else {
+            htmlTable += `<td>-</td>`;
+          }
         });
-      }
+        htmlTable += `</tr>`;
+      });
+
       htmlTable += `</tbody></table>`;
       document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
     }
@@ -472,15 +539,20 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subPiket').classList.add('active-sub');
 
-      let htmlTable = `
-        <table class="jadwal-table">
-          <thead><tr><th>Hari</th><th>Waktu Tugas</th><th>Petugas Piket</th></tr></thead>
-          <tbody>
-      `;
-      dataPiketMaster.forEach(item => {
-        htmlTable += `<tr><td>${item.hari}</td><td>${item.waktu}</td><td style="font-weight:600; color:#10b981;">${item.petugas}</td></tr>`;
-      });
-      htmlTable += `</tbody></table>`;
+      let htmlTable = `<p style="color:var(--text-muted);">Memuat jadwal piket...</p>`;
+      if (dataPiketMaster.length > 0) {
+        htmlTable = `<table class="jadwal-table"><thead><tr>`;
+        Object.keys(dataPiketMaster[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
+        htmlTable += `</tr></thead><tbody>`;
+        dataPiketMaster.forEach(row => {
+          htmlTable += `<tr>`;
+          Object.values(row).forEach(val => { htmlTable += `<td>${val || '-'}</td>`; });
+          htmlTable += `</tr>`;
+        });
+        htmlTable += `</tbody></table>`;
+      } else {
+        htmlTable = `<p>Data sheet piket belum tersedia di dalam file DATABASE.</p>`;
+      }
 
       document.getElementById('content').innerHTML = `
         <div class="content-card">
@@ -490,9 +562,9 @@
       `;
     }
 
-    // Auto-load beranda saat pertama kali dibuka
+    // Jalankan pembacaan file DATABASE saat pertama kali dibuka
     window.addEventListener('load', function() {
-      tampilkanBeranda();
+      muatDatabaseExcel();
     });
   </script>
 </body>
