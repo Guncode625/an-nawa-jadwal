@@ -279,15 +279,18 @@
         let arrayBuffer = await response.arrayBuffer();
         workbookData = XLSX.read(arrayBuffer, { type: 'array' });
         
-        // Cari sheet yang berisi hasil jadwal atau data master
+        // Membaca sheet master jadwal hasil Apps Script
         if (workbookData.SheetNames.includes('JADWAL_FINAL')) {
           dbJadwalGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets['JADWAL_FINAL']);
         } else if (workbookData.SheetNames.includes('JADWAL')) {
           dbJadwalGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets['JADWAL']);
         } else if (workbookData.SheetNames.includes('DATA')) {
           dbJadwalGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets['DATA']);
+        } else if (workbookData.SheetNames.includes('BEBAN_MENGAJAR')) {
+          dbJadwalGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets['BEBAN_MENGAJAR']);
         }
 
+        // Membaca sheet master piket hasil Apps Script
         if (workbookData.SheetNames.includes('PIKET_FINAL')) {
           dbPiketGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets['PIKET_FINAL']);
         } else if (workbookData.SheetNames.includes('Guru PIket')) {
@@ -412,8 +415,7 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subKelas').classList.add('active-sub');
 
-      // Ambil daftar kelas unik jika ada kolom Kelas
-      let daftarKelas = [...new Set(dbJadwalGlobal.map(i => i.Kelas || i.KELAS || i.kelas || '').filter(k => k))].sort();
+      let daftarKelas = [...new Set(dbJadwalGlobal.map(i => String(i.Kelas || i.KELAS || i.kelas || '').trim()).filter(k => k))].sort();
       if (daftarKelas.length === 0) daftarKelas = ['1A', '2A', '3A', '4A', '5A', '6A'];
 
       let optionsHtml = '<option value="">-- Pilih Kelas --</option>';
