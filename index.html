@@ -895,7 +895,7 @@ function parsePiketSheet(sheet) {
 ========================================================= */
 
 async function loadWorkbook() {
-  setStatus("Memuat file jadwal-an-nawa.xlsx...");
+  setStatus("Memuat file DATABASE.xlsx...");
 
   try {
     if (typeof XLSX === "undefined") {
@@ -909,7 +909,7 @@ async function loadWorkbook() {
     if (!response.ok) {
       throw new Error(
         "File Excel tidak dapat dibaca (HTTP " + response.status +
-        "). Pastikan jadwal-an-nawa.xlsx berada satu folder dengan index.html."
+        "). Pastikan DATABASE.xlsx berada satu folder dengan index.html."
       );
     }
 
