@@ -99,175 +99,158 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 .print-header,.print-meta,.print-footer { display:none; }
 
 @page {
-  size:A4 landscape;
-  margin:7mm 7mm 10mm;
+  size: A4 landscape;
+  margin: 5mm;
 }
 
-/* SATU ATURAN CETAK: tidak ada blok @media print yang bertumpuk */
 @media print {
   * {
-    -webkit-print-color-adjust:exact !important;
-    print-color-adjust:exact !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  html,body {
-    width:100% !important;
-    margin:0 !important;
-    padding:0 !important;
-    background:white !important;
-    color:#111 !important;
-    font-family:Arial,Helvetica,sans-serif !important;
-    font-size:8px !important;
-    line-height:1.15 !important;
+  html, body {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: #111 !important;
+    font-family: Arial, Helvetica, sans-serif !important;
   }
-  .site-header,nav,.welcome,.no-print,.screen-only,
-  .panel > h2,.status,.summary-screen,body > footer {
-    display:none !important;
+  .site-header, nav, .welcome, .no-print, .screen-only,
+  .panel > h2, .status, .summary-screen, body > footer {
+    display: none !important;
   }
   main {
-    display:block !important;
-    width:100% !important;
-    max-width:none !important;
-    margin:0 !important;
-    padding:0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   .panel {
-    display:none !important;
-    width:100% !important;
-    margin:0 !important;
-    padding:0 !important;
-    border:0 !important;
-    border-radius:0 !important;
-    box-shadow:none !important;
-    background:white !important;
+    display: none !important;
   }
   body[data-view="kelas"] #kelasView,
   body[data-view="guru"] #guruView,
   body[data-view="piket"] #piketView {
-    display:block !important;
-    visibility:visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
   }
   .print-header {
-    display:block !important;
-    text-align:center !important;
-    margin:0 0 3px !important;
-    color:#111 !important;
+    display: block !important;
+    text-align: center !important;
+    margin: 0 0 2px !important;
   }
   .print-header h1 {
-    margin:0 !important;
-    font-size:13px !important;
-    line-height:1.15 !important;
-    letter-spacing:.4px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.1 !important;
   }
   .print-header h2 {
-    display:block !important;
-    margin:2px 0 4px !important;
-    font-size:10px !important;
-    line-height:1.15 !important;
-    color:#111 !important;
+    display: block !important;
+    margin: 1px 0 3px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
   }
   .print-meta {
-    display:flex !important;
-    justify-content:space-between !important;
-    align-items:center !important;
-    gap:6px !important;
-    width:100% !important;
-    margin:0 0 4px !important;
-    padding:3px 0 !important;
-    border-top:1px solid #555 !important;
-    border-bottom:1px solid #555 !important;
-    font-size:8px !important;
-    line-height:1.15 !important;
-    font-weight:700 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    margin: 0 0 3px !important;
+    padding: 2px 0 !important;
+    border-top: 1px solid #333 !important;
+    border-bottom: 1px solid #333 !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
   }
-  .print-meta .meta-name { flex:1 1 40% !important;text-align:left !important; }
-  .print-meta .meta-total { flex:1 1 60% !important;text-align:right !important; }
   .table-wrap {
-    display:block !important;
-    width:100% !important;
-    max-width:100% !important;
-    overflow:visible !important;
-    margin:0 !important;
-    padding:0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   table {
-    width:100% !important;
-    max-width:100% !important;
-    margin:0 !important;
-    border-collapse:collapse !important;
-    font-size:7px !important;
+    width: 100% !important;
+    height: 100% !important;
+    flex: 1 1 auto !important;
+    margin: 0 !important;
+    border-collapse: collapse !important;
   }
-  th,td {
-    border:1px solid #555 !important;
-    padding:2px 2px !important;
-    color:#111 !important;
-    text-align:center !important;
-    vertical-align:middle !important;
-    overflow-wrap:anywhere !important;
-    word-break:normal !important;
-    line-height:1.1 !important;
+  th, td {
+    border: 1px solid #444 !important;
+    padding: 4px 3px !important;
+    color: #111 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    font-size: 7.5px !important;
+    line-height: 1.2 !important;
   }
-  thead { display:table-header-group !important; }
-  thead th { background:#e6eee8 !important;color:#111 !important;font-size:7px !important; }
+  thead { display: table-header-group !important; }
+  thead th { background: #e2ede5 !important; color: #111 !important; font-size: 8px !important; }
   .schedule-table {
-    min-width:0 !important;
-    width:100% !important;
-    table-layout:fixed !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    table-layout: fixed !important;
   }
-  .schedule-table th:first-child,.schedule-table td:first-child { width:7% !important; }
-  .schedule-table th:nth-child(2),.schedule-table td:nth-child(2) { width:12% !important; }
+  .schedule-table th:first-child, .schedule-table td:first-child { width: 6% !important; }
+  .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 11% !important; }
   .schedule-cell {
-    min-height:0 !important;
-    height:auto !important;
-    padding:0 !important;
-    line-height:1.05 !important;
-    white-space:normal !important;
-    overflow-wrap:anywhere !important;
+    padding: 0 !important;
+    white-space: normal !important;
   }
   .schedule-cell strong {
-    display:block !important;
-    margin:0 !important;
-    color:#111 !important;
-    font-size:7px !important;
-    line-height:1.05 !important;
+    display: block !important;
+    margin: 0 !important;
+    color: #111 !important;
+    font-size: 7.5px !important;
   }
   .schedule-cell small {
-    display:block !important;
-    margin:0 !important;
-    color:#222 !important;
-    font-size:6.5px !important;
-    line-height:1.05 !important;
+    display: block !important;
+    margin: 0 !important;
+    color: #333 !important;
+    font-size: 6.5px !important;
   }
   .schedule-table hr {
-    margin:1px 0 !important;
-    border:0 !important;
-    border-top:1px solid #aaa !important;
+    margin: 1px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid #aaa !important;
   }
-  .break-row td,.special-row td {
-    background:#f0f0f0 !important;
-    color:#111 !important;
-    font-weight:700 !important;
+  .break-row td, .special-row td {
+    background: #eae5d8 !important;
+    color: #111 !important;
+    font-weight: 700 !important;
   }
-  /* Footer tidak fixed agar tidak memicu halaman tambahan */
   .print-footer {
-    display:block !important;
-    position:static !important;
-    width:100% !important;
-    margin-top:4px !important;
-    padding-top:3px !important;
-    border-top:1px solid #aaa !important;
-    text-align:center !important;
-    color:#333 !important;
-    font-size:7px !important;
-    line-height:1.1 !important;
-    background:white !important;
+    display: block !important;
+    width: 100% !important;
+    margin-top: 2px !important;
+    padding-top: 2px !important;
+    border-top: 1px solid #ccc !important;
+    text-align: center !important;
+    color: #444 !important;
+    font-size: 6.5px !important;
   }
   tr {
-    break-inside:avoid !important;
-    page-break-inside:avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
-  /* Jadwal piket tetap memakai seluruh kolom Excel */
-  #piketTable table { table-layout:auto !important;font-size:8px !important; }
-  #piketTable th,#piketTable td { padding:4px 3px !important; }
+  #piketTable table { table-layout: auto !important; font-size: 7.5px !important; }
 }
 
 @media (max-width:650px) {
@@ -657,7 +640,6 @@ function buildWeeklyTable(rows,mode) {
   const bySlot={};
 
   rows.forEach(r=>{
-    // Jangan tampilkan baris ISTIRAHAT dari Excel sebagai jam pelajaran.
     if(isBreakRow(r)) return;
     const day=HARI.find(d=>normalize(d)===normalize(r.hari));
     const jp=periodNumber(r.jp);
