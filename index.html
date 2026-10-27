@@ -48,6 +48,8 @@ button { cursor:pointer; }
 nav {
   display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
   padding:12px;background:white;border-bottom:1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 nav button {
   border:1px solid var(--border);border-radius:8px;
@@ -133,6 +135,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .panel {
     display: none !important;
   }
+  body[data-view="beranda"] #berandaView,
   body[data-view="kelas"] #kelasView,
   body[data-view="guru"] #guruView,
   body[data-view="piket"] #piketView {
@@ -186,7 +189,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     padding: 0 !important;
   }
   
-  /* PENGATURAN UMUM TABEL JADWAL KELAS & GURU */
   table.schedule-table {
     width: 100% !important;
     height: 100% !important;
@@ -204,7 +206,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     font-size: 8px !important;
   }
 
-  /* KHUSUS TABEL PIKET: MENJADI 1/2 HALAMAN SECARA PROPORSIONAL */
   #piketView table {
     width: 100% !important;
     height: auto !important;
@@ -279,7 +280,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 </style>
 </head>
 
-<body data-view="kelas">
+<body data-view="beranda">
 <header class="site-header">
   <div class="header-inner">
     <img class="logo"
@@ -293,21 +294,23 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 </header>
 
 <nav class="no-print">
-  <button type="button" class="active" data-target="kelasView" onclick="showView('kelas')">Jadwal Per Kelas</button>
+  <button type="button" class="active" data-target="berandaView" onclick="showView('beranda')">Beranda</button>
+  <button type="button" data-target="kelasView" onclick="showView('kelas')">Jadwal Per Kelas</button>
   <button type="button" data-target="guruView" onclick="showView('guru')">Jadwal Per Guru</button>
   <button type="button" data-target="piketView" onclick="showView('piket')">Jadwal Piket</button>
 </nav>
 
 <main>
-  <section class="welcome">
+  <!-- BERANDA VIEW -->
+  <section id="berandaView" class="welcome">
     <h2>Ahlan wa Sahlan, Civitas Akademika ✨</h2>
     <p>Pusat informasi dan pengelolaan jadwal KBM RMI Pondok Pesantren Modern An-Nawa</p>
     <p><strong>Tahun Ajaran 2026-2027.</strong></p>
+    <div id="status" class="status" style="margin-top: 15px;">Memuat data jadwal dari file Excel...</div>
   </section>
 
-  <div id="status" class="status">Memuat data jadwal dari file Excel...</div>
-
-  <section id="kelasView" class="panel">
+  <!-- KELAS VIEW -->
+  <section id="kelasView" class="panel hidden">
     <h2>Jadwal Pelajaran Per Kelas</h2>
     <div class="controls no-print">
       <div class="control-group">
@@ -332,6 +335,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
 
+  <!-- GURU VIEW -->
   <section id="guruView" class="panel hidden">
     <h2>Jadwal Pelajaran Per Guru</h2>
     <div class="controls no-print">
@@ -357,6 +361,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
 
+  <!-- PIKET VIEW -->
   <section id="piketView" class="panel hidden">
     <h2>Jadwal Piket</h2>
     <div class="actions no-print">
@@ -470,7 +475,7 @@ function parseScheduleSheet(sheet) {
   return result;
 }
 
-/* MEMBACA JADWAL PIKET: SELURUH KOLOM EXCEL TETAP DITAMPILKAN */
+/* MEMBACA JADWAL PIKET */
 function parsePiketSheet(sheet) {
   const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
   if(!rows.length) return {headers:[],data:[]};
@@ -643,13 +648,11 @@ function getRowsForTeacher(teacherName) {
   ));
 }
 
-/* WAKTU DIAMBIL DARI EXCEL, JIKA TERSEDIA */
 function getPeriodTime(rows,jp) {
   const rowWithTime=rows.find(r=>periodNumber(r.jp)===jp&&slotText(r));
   return rowWithTime?slotText(rowWithTime):getDefaultTime(jp);
 }
 
-/* TABEL JADWAL: ISTIRAHAT HANYA DIBUAT SEKALI SETELAH JP 2 DAN JP 4 */
 function buildWeeklyTable(rows,mode) {
   const periods=[1,2,3,4,5,6,7];
   const bySlot={};
@@ -701,7 +704,6 @@ function buildWeeklyTable(rows,mode) {
   return html;
 }
 
-/* HITUNG JAM PELAJARAN */
 function countUniquePeriods(rows) {
   const unique=new Set();
   rows.forEach(r=>{
@@ -718,7 +720,6 @@ function countTeacherPeriods(teacherName) {
   return countUniquePeriods(state.jadwal.filter(r=>normalize(r.guru)===wanted&&r.hari&&r.jp));
 }
 
-/* NAMA GURU DAN JUMLAH PIKET */
 function getPiketTeacherNames() {
   if(!state.piketHeaders.length) return [];
   const columns=state.piketHeaders.filter(header=>/guru|petugas|nama|piket/i.test(normalize(header)));
@@ -748,7 +749,6 @@ function countTeacherPiket(teacherName) {
   return count;
 }
 
-/* TAMPILKAN JADWAL KELAS */
 function renderClassSchedule() {
   if(!state.loaded) return;
   const className=$("kelasSelect").value;
@@ -769,7 +769,6 @@ function renderClassSchedule() {
   $("kelasTable").innerHTML=buildWeeklyTable(rows,"kelas");
 }
 
-/* TAMPILKAN JADWAL GURU */
 function renderTeacherSchedule() {
   if(!state.loaded) return;
   const teacherName=$("guruSelect").value;
@@ -795,7 +794,6 @@ function renderTeacherSchedule() {
   $("guruTable").innerHTML=buildWeeklyTable(rows,"guru");
 }
 
-/* TAMPILKAN SELURUH DATA PIKET */
 function renderPiketTable() {
   const headers=state.piketHeaders,data=state.piket;
   $("piketPrintTotal").textContent="Data piket: "+data.length+" baris";
@@ -823,17 +821,24 @@ function renderPiketTable() {
   $("piketTable").innerHTML=html;
 }
 
-/* NAVIGASI */
+/* NAVIGASI MENU TERPISAH (TAB / VIEW SWITCHER) */
 function showView(view) {
-  if(!["kelas","guru","piket"].includes(view)) view="kelas";
+  if(!["beranda","kelas","guru","piket"].includes(view)) view="beranda";
   document.body.dataset.view=view;
-  $("kelasView").classList.toggle("hidden",view!=="kelas");
-  $("guruView").classList.toggle("hidden",view!=="guru");
-  $("piketView").classList.toggle("hidden",view!=="piket");
+  
+  $("berandaView").classList.toggle("hidden", view!=="beranda");
+  $("kelasView").classList.toggle("hidden", view!=="kelas");
+  $("guruView").classList.toggle("hidden", view!=="guru");
+  $("piketView").classList.toggle("hidden", view!=="piket");
+  
   document.querySelectorAll("nav button").forEach(button=>{
-    button.classList.toggle("active",button.dataset.target===view+"View");
+    button.classList.toggle("active", button.dataset.target === view+"View");
   });
+  
+  // Otomatis scroll ke atas saat berpindah menu agar langsung rapi
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 function printCurrentView() {
   window.print();
 }
