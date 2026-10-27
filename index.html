@@ -1324,29 +1324,20 @@ function sortSchedule(rows) {
 }
 
 function displayCell(r, mode) {
-  const mapel = clean(r.mapel);
+  const mapel = clean(r.mapel) || "Kegiatan";
   const guru = clean(r.guru);
-  const kelas = clean(r.kelas);
-  const time = slotText(r);
 
-  let title = mapel || "Kegiatan";
-  let detail = "";
-
-  if (mode === "kelas") {
-    detail = guru;
-  } else {
-    detail = [mapel, kelas ? "Kelas " + kelas : ""].filter(Boolean).join("\n");
-  }
+  // Jadwal kelas: nama mapel dan nama guru.
+  // Jadwal guru: hanya nama mapel.
+  const detail = mode === "kelas" ? guru : "";
 
   return `
     <div class="schedule-cell">
-      <strong>${escapeHTML(title)}</strong>
+      <strong>${escapeHTML(mapel)}</strong>
       ${detail ? `<small>${escapeHTML(detail)}</small>` : ""}
-      ${time ? `<small>${escapeHTML(time)}</small>` : ""}
     </div>
   `;
 }
-
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -1375,25 +1366,48 @@ function getRowsForTeacher(teacherName) {
   return sortSchedule(teachingRows);
 }
 
+
+function getPeriodTime(rows, jp) {
+  const rowWithTime = rows.find(r =>
+    periodNumber(r.jp) === jp && slotText(r)
+  );
+
+  if (rowWithTime) {
+    return slotText(rowWithTime);
+  }
+
+  return getDefaultTime(jp);
+}
+
 function buildWeeklyTable(rows, mode) {
   const periods = [1, 2, 3, 4, 5, 6, 7];
 
-  // Kelompokkan entri berdasarkan hari dan JP.
+  // Kelompokkan jadwal berdasarkan hari dan JP.
   const bySlot = {};
 
   rows.forEach(r => {
-    const day = HARI.find(d => normalize(d) === normalize(r.hari));
+    const day = HARI.find(
+      d => normalize(d) === normalize(r.hari)
+    );
+
     const jp = periodNumber(r.jp);
 
     if (!day || jp < 1 || jp > 7) return;
 
     const key = day + "|" + jp;
-    if (!bySlot[key]) bySlot[key] = [];
+
+    if (!bySlot[key]) {
+      bySlot[key] = [];
+    }
+
     bySlot[key].push(r);
   });
 
-  let html = '<table class="schedule-table"><thead><tr>';
-  html += '<th>JP</th><th>Waktu</th>';
+  // Buat header tabel jadwal.
+  let html = '<table class="schedule-table">';
+  html += "<thead><tr>";
+  html += "<th>Jam Ke</th>";
+  html += "<th>Waktu</th>";
 
   HARI.forEach(day => {
     html += `<th>${escapeHTML(day)}</th>`;
@@ -1401,48 +1415,96 @@ function buildWeeklyTable(rows, mode) {
 
   html += "</tr></thead><tbody>";
 
+  // Buat baris untuk setiap jam pelajaran.
   periods.forEach(jp => {
-    // Baris istirahat di antara JP 2 dan JP 3.
-    if (jp === 3) {
-      html += `<tr class="break-row"><td colspan="${HARI.length + 2}">ISTIRAHAT</td></tr>`;
-    }
-
-    // Baris khusus Jumat tetap pada JP 6 dan JP 7.
-    // Data khusus ditampilkan sebagai fallback jika tidak dicatat di Excel.
     html += "<tr>";
-    html += `<td>${jp}</td>`;
-    html += `<td>${getDefaultTime(jp)}</td>`;
 
+    // Kolom nomor jam pelajaran.
+    html += `<td>${jp}</td>`;
+
+    // Kolom waktu berada di kolom B.
+    html += `<td>${escapeHTML(getPeriodTime(rows, jp))}</td>`;
+
+    // Buat kolom jadwal untuk setiap hari.
     HARI.forEach(day => {
       let entries = bySlot[day + "|" + jp] || [];
 
-      if (day === "Jumat" && jp === 6 && !entries.length) {
+      // Jumat JP 6: Shalat Jumat untuk semua kelas.
+      if (
+        day === "Jumat" &&
+        jp === 6 &&
+        !entries.length
+      ) {
         entries = [{
-          hari: day, jp: String(jp), mulai: "", selesai: "",
-          guru: "", kelas: "Semua", mapel: "Shalat Jumat"
+          hari: day,
+          jp: String(jp),
+          mulai: "",
+          selesai: "",
+          guru: "",
+          kelas: "Semua",
+          mapel: "Shalat Jumat"
         }];
       }
 
-      if (day === "Jumat" && jp === 7 && !entries.length) {
+      // Jumat JP 7: Pramuka untuk semua kelas.
+      if (
+        day === "Jumat" &&
+        jp === 7 &&
+        !entries.length
+      ) {
         entries = [{
-          hari: day, jp: String(jp), mulai: "", selesai: "",
-          guru: "", kelas: "Semua", mapel: "Pramuka"
+          hari: day,
+          jp: String(jp),
+          mulai: "",
+          selesai: "",
+          guru: "",
+          kelas: "Semua",
+          mapel: "Pramuka"
         }];
       }
 
+      // Tampilkan mata pelajaran sesuai mode kelas atau guru.
       const cellContent = entries.length
-        ? entries.map(r => displayCell(r, mode)).join("<hr>")
+        ? entries
+            .map(r => displayCell(r, mode))
+            .join("<hr>")
         : "—";
 
-      const specialClass = entries.some(isSpecialRow) ? "special-row" : "";
+      // Tandai kegiatan khusus.
+      const specialClass = entries.some(isSpecialRow)
+        ? "special-row"
+        : "";
 
       html += `<td class="${specialClass}">${cellContent}</td>`;
     });
 
     html += "</tr>";
+
+    // ISTIRAHAT 1 setelah JP 2.
+    if (jp === 2) {
+      html += `
+        <tr class="break-row">
+          <td></td>
+          <td></td>
+          <td colspan="${HARI.length}">ISTIRAHAT 1</td>
+        </tr>
+      `;
+    }
+
+    // ISTIRAHAT 2 setelah JP 4.
+    if (jp === 4) {
+      html += `
+        <tr class="break-row">
+          <td></td>
+          <td></td>
+          <td colspan="${HARI.length}">ISTIRAHAT 2</td>
+        </tr>
+      `;
+    }
   });
 
   html += "</tbody></table>";
+
   return html;
 }
 
