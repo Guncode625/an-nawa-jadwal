@@ -340,7 +340,233 @@ footer {
 
 @page {
   size: A4 landscape;
-  margin: 12mm 10mm 17mm;
+  margin: 8mm 8mm 14mm;
+}
+
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  html,
+  body {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    color: #111 !important;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px !important;
+  }
+
+  .site-header,
+  nav,
+  .welcome,
+  .no-print,
+  .screen-only,
+  .panel > h2,
+  .status,
+  .summary-screen,
+  body > footer {
+    display: none !important;
+  }
+
+  main {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .panel {
+    display: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: white !important;
+  }
+
+  body[data-view="kelas"] #kelasView,
+  body[data-view="guru"] #guruView,
+  body[data-view="piket"] #piketView {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .print-header {
+    display: block !important;
+    text-align: center !important;
+    margin: 0 0 4px !important;
+    color: #111 !important;
+  }
+
+  .print-header h1 {
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0.5px;
+  }
+
+  .print-header h2 {
+    display: block !important;
+    margin: 2px 0 5px !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    color: #111 !important;
+  }
+
+  .print-meta {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 0 0 5px !important;
+    padding: 4px 0 !important;
+    border-top: 1px solid #555 !important;
+    border-bottom: 1px solid #555 !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    font-weight: 700 !important;
+  }
+
+  .print-meta .meta-name {
+    flex: 1 1 40% !important;
+    text-align: left !important;
+  }
+
+  .print-meta .meta-total {
+    flex: 1 1 60% !important;
+    text-align: right !important;
+  }
+
+  .table-wrap {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    font-size: 8px !important;
+    margin: 0 !important;
+  }
+
+  th,
+  td {
+    border: 1px solid #555 !important;
+    padding: 3px 3px !important;
+    color: #111 !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+    line-height: 1.15 !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  thead th {
+    background: #e6eee8 !important;
+    color: #111 !important;
+    font-size: 8px !important;
+    font-weight: 700 !important;
+  }
+
+  .schedule-table {
+    min-width: 0 !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .schedule-table th:first-child,
+  .schedule-table td:first-child {
+    width: 7% !important;
+  }
+
+  .schedule-table th:nth-child(2),
+  .schedule-table td:nth-child(2) {
+    width: 12% !important;
+  }
+
+  .schedule-cell {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    white-space: pre-line !important;
+    overflow-wrap: anywhere !important;
+    line-height: 1.1 !important;
+  }
+
+  .schedule-cell strong {
+    display: block !important;
+    margin: 0 0 1px !important;
+    color: #111 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+  }
+
+  .schedule-cell small {
+    display: block !important;
+    margin-top: 1px !important;
+    color: #222 !important;
+    font-size: 7px !important;
+    line-height: 1.1 !important;
+  }
+
+  .schedule-table hr {
+    margin: 2px 0 !important;
+    border: 0 !important;
+    border-top: 1px solid #aaa !important;
+  }
+
+  .break-row td,
+  .special-row td {
+    background: #f0f0f0 !important;
+    color: #111 !important;
+    font-weight: 700 !important;
+  }
+
+  .print-footer {
+    display: block !important;
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: -10mm !important;
+    width: 100% !important;
+    padding-top: 3px !important;
+    border-top: 1px solid #aaa !important;
+    text-align: center !important;
+    color: #333 !important;
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+    background: white !important;
+  }
+
+  tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #kelasTable,
+  #guruTable,
+  #piketTable {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }
 
 @media print {
