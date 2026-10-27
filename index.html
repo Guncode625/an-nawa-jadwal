@@ -89,11 +89,21 @@ main { max-width:1200px;padding:24px 18px 40px;margin:auto; }
   transform: translateY(-5px);
   box-shadow: 0 8px 20px rgba(7,94,67,0.12);
   border-top-color: var(--gold);
-}
+}/* Efek animasi lembut agar ikon tampak hidup dan berwarna */
 .dash-card i {
   font-size: 38px;
-  color: var(--green);
+  background: linear-gradient(135deg, var(--green), var(--gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 15px;
+  display: inline-block;
+  animation: pulseIcon 2s infinite ease-in-out;
+}
+
+@keyframes pulseIcon {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); filter: drop-shadow(0 4px 6px rgba(7,94,67,0.2)); }
+  100% { transform: scale(1); }
 }
 .dash-card h3 {
   margin: 0 0 8px;
