@@ -259,7 +259,7 @@
   </nav>
 
   <main class="container">
-    <div id="content"><p style="text-align:center; padding: 40px; color:var(--text-muted);">Memproses DATABASE mentah...</p></div>
+    <div id="content"><p style="text-align:center; padding: 40px; color:var(--text-muted);">Memuat DATABASE hasil Apps Script...</p></div>
   </main>
 
   <footer class="footer">
@@ -267,27 +267,8 @@
   </footer>
 
   <script>
-    let dbBeban = [];
-    let dbWaktu = [];
-    let dbKegiatanKhusus = [];
-    let dbPiket = [];
-    let hasilJadwalFinal = [];
-    const daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-
-    function formatJamExcel(val) {
-      if (val === undefined || val === null || val === '') return '';
-      let num = Number(val);
-      if (!isNaN(num) && typeof val === 'number') {
-        let totalSec = Math.round(num * 86400);
-        let h = Math.floor(totalSec / 3600);
-        let m = Math.floor((totalSec % 3600) / 60);
-        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-      }
-      let s = String(val).trim().replace(/"/g, '');
-      if (s.includes(' ')) s = s.split(' ').pop();
-      if (s.length >= 5) return s.substring(0, 5);
-      return s;
-    }
+    let dbJadwalGlobal = [];
+    let dbPiketGlobal = [];
 
     async function muatDatabase() {
       try {
@@ -295,70 +276,44 @@
         if (!response.ok) throw new Error('File DATABASE.xlsx tidak ditemukan.');
         
         let arrayBuffer = await response.arrayBuffer();
-        let workbook = XLSX.read(arrayBuffer, { type: 'array' });
+        let workbookData = XLSX.read(arrayBuffer, { type: 'array' });
         
-        if (workbook.SheetNames.includes('BEBAN_MENGAJAR')) {
-          dbBeban = XLSX.utils.sheet_to_json(workbook.Sheets['BEBAN_MENGAJAR']);
-        } else if (workbook.SheetNames.includes('DATA')) {
-          dbBeban = XLSX.utils.sheet_to_json(workbook.Sheets['DATA']);
+        // Mengambil data langsung dari sheet JADWAL yang sudah di-generate oleh Apps Script
+        let targetSheetJadwal = 'JADWAL';
+        if (workbookData.SheetNames.includes('JADWAL')) {
+          targetSheetJadwal = 'JADWAL';
+        } else if (workbookData.SheetNames.includes('JADWAL_FINAL')) {
+          targetSheetJadwal = 'JADWAL_FINAL';
+        } else if (workbookData.SheetNames.includes('DATA')) {
+          targetSheetJadwal = 'DATA';
+        } else {
+          targetSheetJadwal = workbookData.SheetNames[0];
         }
 
-        if (workbook.SheetNames.includes('WAKTU')) {
-          dbWaktu = XLSX.utils.sheet_to_json(workbook.Sheets['WAKTU']);
+        dbJadwalGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets[targetSheetJadwal]);
+
+        // Mengambil data piket dari sheet Guru PIket / PIKET_FINAL
+        let targetSheetPiket = 'Guru PIket';
+        if (workbookData.SheetNames.includes('Guru PIket')) {
+          targetSheetPiket = 'Guru PIket';
+        } else if (workbookData.SheetNames.includes('PIKET_FINAL')) {
+          targetSheetPiket = 'PIKET_FINAL';
+        }
+        
+        if (workbookData.SheetNames.includes(targetSheetPiket)) {
+          dbPiketGlobal = XLSX.utils.sheet_to_json(workbookData.Sheets[targetSheetPiket]);
         }
 
-        if (workbook.SheetNames.includes('KEGIATAN_KHUSUS')) {
-          dbKegiatanKhusus = XLSX.utils.sheet_to_json(workbook.Sheets['KEGIATAN_KHUSUS']);
-        }
-
-        if (workbook.SheetNames.includes('Guru PIket')) {
-          dbPiket = XLSX.utils.sheet_to_json(workbook.Sheets['Guru PIket']);
-        }
-
-        // Generate otomatis di memori browser berdasarkan data mentah
-        prosesGenerateJadwal();
         tampilkanBeranda();
       } catch (error) {
         console.error("Gagal memuat DATABASE:", error);
         document.getElementById('content').innerHTML = `
           <div class="content-card" style="text-align: center; color: #dc2626;">
             <h3>Gagal Memuat DATABASE.xlsx</h3>
-            <p>Pastikan file <b>DATABASE.xlsx</b> ada di direktori utama repository.</p>
+            <p>Pastikan file hasil generate Apps Script sudah di-upload ke repository dengan nama <b>DATABASE.xlsx</b>.</p>
           </div>
         `;
       }
-    }
-
-    function prosesGenerateJadwal() {
-      hasilJadwalFinal = [];
-      let slotValid = dbWaktu.filter(w => {
-        let jp = String(w.JP || w.jp || '').trim().replace(/"/g, '');
-        return jp !== '' && !isNaN(Number(jp));
-      });
-
-      let bebanList = [...dbBeban].sort((a, b) => (b['Alokasi JP'] || b.JP || b.jp || 0) - (a['Alokasi JP'] || a.JP || a.jp || 0));
-
-      bebanList.forEach(b => {
-        let guru = b['Nama Guru'] || b.GURU || b.guru;
-        let mapel = b['Mata Pelajaran'] || b.MAPEL || b.mapel;
-        let kelas = String(b['Kelas'] || b.KELAS || b.kelas || '').trim();
-        let targetJp = Number(b['Alokasi JP'] || b.JP || b.jp || 1);
-
-        let teralokasi = 0;
-        for (let s of slotValid) {
-          if (teralokasi >= targetJp) break;
-          let hari = String(s.Hari || s.HARI || s.hari || '').trim();
-          let jpVal = String(s.JP || s.jp || '').trim().replace(/"/g, '');
-          let mulai = formatJamExcel(s.Mulai || s.MULAI || s.mulai);
-          let selesai = formatJamExcel(s.Selesai || s.SELESAI || s.selesai);
-
-          let bentrok = hasilJadwalFinal.some(j => j.hari === hari && j.jp === jpVal && (j.guru === guru || j.kelas === kelas));
-          if (!bentrok) {
-            hasilJadwalFinal.push({ hari, jp: jpVal, mulai, selesai, guru, mapel, kelas });
-            teralokasi++;
-          }
-        }
-      });
     }
 
     function clearNav() {
@@ -399,7 +354,7 @@
             <div class="menu-card-modern" onclick="tampilkanSemuaJadwal()">
               <i class="fas fa-clipboard-list"></i>
               <h3>Semua Jadwal</h3>
-              <p>Tampilkan keseluruhan daftar jadwal master.</p>
+              <p>Tampilkan keseluruhan daftar jadwal dari sheet JADWAL.</p>
             </div>
             <div class="menu-card-modern" onclick="tampilkanJadwalKelas()">
               <i class="fas fa-users"></i>
@@ -441,19 +396,22 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subSemua').classList.add('active-sub');
 
-      let htmlTable = `
-        <table class="jadwal-table">
-          <thead><tr><th>Hari</th><th>JP</th><th>Mulai</th><th>Selesai</th><th>Guru</th><th>Mata Pelajaran</th><th>Kelas</th></tr></thead>
-          <tbody>
-      `;
-      hasilJadwalFinal.forEach(item => {
-        htmlTable += `<tr><td>${item.hari}</td><td>${item.jp}</td><td>${item.mulai}</td><td>${item.selesai}</td><td style="color:#2563eb; font-weight:600;">${item.guru}</td><td>${item.mapel}</td><td><b>${item.kelas}</b></td></tr>`;
-      });
-      htmlTable += `</tbody></table>`;
+      let htmlTable = `<p style="color:var(--text-muted);">Data jadwal belum tersedia di sheet JADWAL.</p>`;
+      if (dbJadwalGlobal.length > 0) {
+        htmlTable = `<table class="jadwal-table"><thead><tr>`;
+        Object.keys(dbJadwalGlobal[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
+        htmlTable += `</tr></thead><tbody>`;
+        dbJadwalGlobal.forEach(row => {
+          htmlTable += `<tr>`;
+          Object.values(row).forEach(val => { htmlTable += `<td>${val !== undefined && val !== null ? val : '-'}</td>`; });
+          htmlTable += `</tr>`;
+        });
+        htmlTable += `</tbody></table>`;
+      }
 
       document.getElementById('content').innerHTML = `
         <div class="content-card">
-          ${renderHeaderAksi('Semua Jadwal Master')}
+          ${renderHeaderAksi('Semua Jadwal (Sheet JADWAL)')}
           <div id="tabel-wrapper-isi">${htmlTable}</div>
         </div>
       `;
@@ -464,7 +422,7 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subKelas').classList.add('active-sub');
 
-      let daftarKelas = [...new Set(dbBeban.map(item => String(item.Kelas || item.KELAS || item.kelas || '').trim()).filter(k => k))].sort();
+      let daftarKelas = [...new Set(dbJadwalGlobal.map(i => String(i.Kelas || i.KELAS || i.kelas || '').trim()).filter(k => k))].sort();
       let optionsHtml = '<option value="">-- Pilih Kelas --</option>';
       daftarKelas.forEach(k => { optionsHtml += `<option value="${k}">${k}</option>`; });
 
@@ -485,65 +443,23 @@
     function muatKelas(kelas) {
       if (!kelas) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih kelas di atas.</p>'; return; }
       
+      const filtered = dbJadwalGlobal.filter(i => String(i.Kelas || i.KELAS || i.kelas || '').trim() === kelas);
       let htmlTable = `<div class="info-terpilih-print" style="margin-bottom:10px; font-weight:bold;">Kelas: ${kelas}</div>`;
-      htmlTable += `<table class="jadwal-table"><thead><tr><th>Jam Ke</th><th>Waktu</th>`;
-      daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
-      htmlTable += `</tr></thead><tbody>`;
-
-      const listWaktuUnik = [];
-      dbWaktu.forEach(i => {
-        let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-        let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-        if (m && s) {
-          let str = m + ' - ' + s;
-          if (!listWaktuUnik.includes(str)) listWaktuUnik.push(str);
-        }
-      });
-      dbKegiatanKhusus.forEach(i => {
-        let m = formatJamExcel(i.Waktu || i.waktu);
-        if (m && !listWaktuUnik.includes(m)) listWaktuUnik.push(m);
-      });
-
-      listWaktuUnik.forEach(waktuStr => {
-        let sampleWaktu = dbWaktu.find(i => formatJamExcel(i.Mulai || i.MULAI || i.mulai) === waktuStr.split(' - ')[0]);
-        let jpVal = sampleWaktu ? String(sampleWaktu.JP || sampleWaktu.jp || '').replace(/"/g, '') : '-';
-
-        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
-        
-        daftarHari.forEach(h => {
-          let kegHari = dbKegiatanKhusus.find(i => {
-            let hariRow = String(i.Hari || i.HARI || i.hari || '').trim();
-            let waktuRow = formatJamExcel(i.Waktu || i.waktu);
-            return hariRow.toLowerCase() === h.toLowerCase() && (waktuRow === waktuStr.split(' - ')[0] || waktuRow === waktuStr);
-          });
-
-          let istirahatMatch = dbWaktu.find(i => {
-            let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-            let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-            let jpStr = String(i.JP || i.jp || '').toLowerCase();
-            let hariRow = String(i.Hari || i.HARI || i.hari || '').trim();
-            return hariRow.toLowerCase() === h.toLowerCase() && (m + ' - ' + s) === waktuStr && jpStr.includes('istirahat');
-          });
-
-          if (kegHari) {
-            let namaKegiatan = kegHari.Kegiatan || kegHari.kegiatan || 'KEGIATAN';
-            htmlTable += `<td style="background:#e2e8f0; font-weight:bold;">${namaKegiatan.toUpperCase()}</td>`;
-          } else if (istirahatMatch) {
-            let namaIstirahat = String(istirahatMatch.JP || istirahatMatch.jp || '').replace(/"/g, '').toUpperCase();
-            htmlTable += `<td style="background:#e2e8f0; font-weight:bold;">${namaIstirahat}</td>`;
-          } else {
-            let match = hasilJadwalFinal.find(i => i.hari.toLowerCase() === h.toLowerCase() && String(i.jp) === String(jpVal) && i.kelas === kelas);
-            if (match) {
-              htmlTable += `<td>${match.mapel}<br><span style="color:#2563eb; font-size:11px;">(${match.guru})</span></td>`;
-            } else {
-              htmlTable += `<td>-</td>`;
-            }
-          }
+      
+      if (filtered.length > 0) {
+        htmlTable += `<table class="jadwal-table"><thead><tr>`;
+        Object.keys(filtered[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
+        htmlTable += `</tr></thead><tbody>`;
+        filtered.forEach(row => {
+          htmlTable += `<tr>`;
+          Object.values(row).forEach(val => { htmlTable += `<td>${val !== undefined && val !== null ? val : '-'}</td>`; });
+          htmlTable += `</tr>`;
         });
-        htmlTable += `</tr>`;
-      });
+        htmlTable += `</tbody></table>`;
+      } else {
+        htmlTable += `<p style="color:var(--text-muted);">Tidak ada data jadwal untuk kelas ${kelas}.</p>`;
+      }
 
-      htmlTable += `</tbody></table>`;
       document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
     }
 
@@ -552,7 +468,7 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subGuru').classList.add('active-sub');
 
-      let daftarGuru = [...new Set(dbBeban.map(item => item['Nama Guru'] || item.GURU || item.guru).filter(g => g))].sort();
+      let daftarGuru = [...new Set(dbJadwalGlobal.map(i => i['Nama Guru'] || i.GURU || i.guru || '').filter(g => g))].sort();
       let optionsHtml = '<option value="">-- Pilih Guru --</option>';
       daftarGuru.forEach(g => { optionsHtml += `<option value="${g}">${g}</option>`; });
 
@@ -573,59 +489,23 @@
     function muatGuru(guru) {
       if (!guru) { document.getElementById('tabel-wrapper-isi').innerHTML = '<p style="color:var(--text-muted); font-style:italic;">Silakan pilih guru di atas.</p>'; return; }
       
-      const filtered = hasilJadwalFinal.filter(item => item.guru === guru);
-      let totalJP = filtered.length;
-
-      let htmlTable = `
-        <div class="info-terpilih-print" style="margin-bottom: 12px; font-size: 14px; color: #1e293b; display:flex; justify-content:space-between; align-items:center;">
-          <div><b>Nama Guru:</b> ${guru}</div>
-          <div style="background: #e0f2fe; padding: 4px 12px; border-radius: 6px; color: #0369a1; font-weight:600;">Total Mengajar: ${totalJP} Sesi</div>
-        </div>
-      `;
-      htmlTable += `<table class="jadwal-table"><thead><tr><th>Jam Ke</th><th>Waktu</th>`;
-      daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
-      htmlTable += `</tr></thead><tbody>`;
-
-      const listWaktuUnik = [];
-      dbWaktu.forEach(i => {
-        let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-        let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-        if (m && s) {
-          let str = m + ' - ' + s;
-          if (!listWaktuUnik.includes(str)) listWaktuUnik.push(str);
-        }
-      });
-
-      listWaktuUnik.forEach(waktuStr => {
-        let sampleWaktu = dbWaktu.find(i => formatJamExcel(i.Mulai || i.MULAI || i.mulai) === waktuStr.split(' - ')[0]);
-        let jpVal = sampleWaktu ? String(sampleWaktu.JP || sampleWaktu.jp || '').replace(/"/g, '') : '-';
-
-        let istirahatMatch = dbWaktu.find(i => {
-          let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-          let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-          let jpStr = String(i.JP || i.jp || '').toLowerCase();
-          return (m + ' - ' + s) === waktuStr && jpStr.includes('istirahat');
+      const filtered = dbJadwalGlobal.filter(i => String(i['Nama Guru'] || i.GURU || i.guru || '').trim() === guru);
+      let htmlTable = `<div class="info-terpilih-print" style="margin-bottom:10px; font-weight:bold;">Nama Guru: ${guru}</div>`;
+      
+      if (filtered.length > 0) {
+        htmlTable += `<table class="jadwal-table"><thead><tr>`;
+        Object.keys(filtered[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
+        htmlTable += `</tr></thead><tbody>`;
+        filtered.forEach(row => {
+          htmlTable += `<tr>`;
+          Object.values(row).forEach(val => { htmlTable += `<td>${val !== undefined && val !== null ? val : '-'}</td>`; });
+          htmlTable += `</tr>`;
         });
+        htmlTable += `</tbody></table>`;
+      } else {
+        htmlTable += `<p style="color:var(--text-muted);">Tidak ada data jadwal mengajar untuk ${guru}.</p>`;
+      }
 
-        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
-        
-        daftarHari.forEach(h => {
-          if (istirahatMatch) {
-            let namaIstirahat = String(istirahatMatch.JP || istirahatMatch.jp || '').replace(/"/g, '').toUpperCase();
-            htmlTable += `<td style="background:#e2e8f0; font-weight:bold;">${namaIstirahat}</td>`;
-          } else {
-            let match = filtered.find(i => i.hari.toLowerCase() === h.toLowerCase() && String(i.jp) === String(jpVal));
-            if (match) {
-              htmlTable += `<td>${match.kelas}<br><span style="color:#2563eb; font-size:11px;">(${match.mapel})</span></td>`;
-            } else {
-              htmlTable += `<td>-</td>`;
-            }
-          }
-        });
-        htmlTable += `</tr>`;
-      });
-
-      htmlTable += `</tbody></table>`;
       document.getElementById('tabel-wrapper-isi').innerHTML = htmlTable;
     }
 
@@ -634,41 +514,18 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subPiket').classList.add('active-sub');
 
-      let htmlTable = `
-        <table class="jadwal-table">
-          <thead><tr><th>Jam Ke</th><th>Waktu</th><th>Senin</th><th>Selasa</th><th>Rabu</th><th>Kamis</th><th>Jumat</th><th>Sabtu</th></tr></thead>
-          <tbody>
-      `;
-
-      let masterBarisPiket = [
-        { jp: 1, waktu: "07:00 - 07:40" },
-        { jp: 2, waktu: "07:40 - 08:20" },
-        { jp: "-", waktu: "08:20 - 08:40", ket: "ISTIRAHAT 1" },
-        { jp: 3, waktu: "08:40 - 09:20" },
-        { jp: 4, waktu: "09:20 - 10:00" },
-        { jp: "-", waktu: "10:00 - 10:20", ket: "ISTIRAHAT 2" },
-        { jp: 5, waktu: "10:20 - 11:00" },
-        { jp: 6, waktu: "11:00 - 11:40" },
-        { jp: 7, waktu: "14:00 - 14:40" }
-      ];
-
-      let listPiketGuru = dbPiket.map(item => item['Nama Guru'] || item.GURU || item.guru).filter(g => g);
-
-      masterBarisPiket.forEach(b => {
-        htmlTable += `<tr><td><b>${b.jp}</b></td><td>${b.waktu}</td>`;
-        if (b.ket) {
-          htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${b.ket}</td>`;
-        } else {
-          daftarHari.forEach((h, idx) => {
-            let indexGuru = (Number(b.jp) * 2 + idx) % (listPiketGuru.length || 1);
-            let namaPiket = listPiketGuru[indexGuru] || 'Pengawas';
-            htmlTable += `<td>${namaPiket}</td>`;
-          });
-        }
-        htmlTable += `</tr>`;
-      });
-
-      htmlTable += `</tbody></table>`;
+      let htmlTable = `<p style="color:var(--text-muted);">Data jadwal piket belum tersedia di database.</p>`;
+      if (dbPiketGlobal.length > 0) {
+        htmlTable = `<table class="jadwal-table"><thead><tr>`;
+        Object.keys(dbPiketGlobal[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
+        htmlTable += `</tr></thead><tbody>`;
+        dbPiketGlobal.forEach(row => {
+          htmlTable += `<tr>`;
+          Object.values(row).forEach(val => { htmlTable += `<td>${val !== undefined && val !== null ? val : '-'}</td>`; });
+          htmlTable += `</tr>`;
+        });
+        htmlTable += `</tbody></table>`;
+      }
 
       document.getElementById('content').innerHTML = `
         <div class="content-card">
@@ -678,6 +535,7 @@
       `;
     }
 
+    // Jalankan otomatis saat halaman dibuka
     window.addEventListener('load', function() {
       muatDatabase();
     });
