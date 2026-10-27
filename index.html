@@ -143,7 +143,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 
 @page {
   size: A4 landscape;
-  margin: 8mm 10mm;
+  margin: 12mm 10mm 8mm 15mm; /* Margin kiri diperbesar untuk ruang jilid/hekter */
 }
 
 @media print {
@@ -194,7 +194,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .print-header {
     display: block !important;
     text-align: center !important;
-    margin: 0 0 4px !important;
+    margin: 12px 0 6px !important; /* Tambahan ruang kosong atas agar tidak terhekter/tertutup jilid */
   }
   .print-header h1 {
     margin: 0 !important;
@@ -203,7 +203,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   }
   .print-header h2 {
     display: block !important;
-    margin: 2px 0 4px !important;
+    margin: 2px 0 6px !important;
     font-size: 11px !important;
     line-height: 1.1 !important;
   }
@@ -212,8 +212,8 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     justify-content: space-between !important;
     align-items: center !important;
     width: 100% !important;
-    margin: 0 0 6px !important;
-    padding: 3px 0 !important;
+    margin: 0 0 8px !important;
+    padding: 4px 0 !important;
     border-top: 1px solid #222 !important;
     border-bottom: 1px solid #222 !important;
     font-size: 9px !important;
@@ -297,7 +297,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .print-footer {
     display: block !important;
     width: 100% !important;
-    margin-top: 15px !important;
+    margin-top: 12px !important;
     padding-top: 4px !important;
     border-top: 1px solid #bbb !important;
     text-align: center !important;
@@ -350,7 +350,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     
     <div id="status" class="status" style="margin-top: 15px;">Memuat data jadwal dari file Excel...</div>
 
-    <!-- KARTU PINTASAN MENU UTAMA (DASHBOARD) DENGAN IKON YANG DIPERBAIKI -->
+    <!-- KARTU PINTASAN MENU UTAMA (DASHBOARD) -->
     <div class="dashboard-grid">
       <div class="dash-card" onclick="showView('kelas')">
         <i class="fas fa-school"></i>
