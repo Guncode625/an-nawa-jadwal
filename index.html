@@ -1326,9 +1326,6 @@ function sortSchedule(rows) {
 function displayCell(r, mode) {
   const mapel = clean(r.mapel) || "Kegiatan";
   const guru = clean(r.guru);
-
-  // Jadwal kelas: nama mapel dan nama guru.
-  // Jadwal guru: hanya nama mapel.
   const detail = mode === "kelas" ? guru : "";
 
   return `
@@ -1338,6 +1335,7 @@ function displayCell(r, mode) {
     </div>
   `;
 }
+
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
