@@ -1,754 +1,293 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sistem Jadwal Pelajaran | An-Nawa</title>
-
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 :root {
-  --green: #075e43;
-  --green-dark: #064532;
-  --green-light: #eaf5ef;
-  --gold: #d6ad55;
-  --text: #24332d;
-  --muted: #64756d;
-  --border: #dce7e0;
-  --white: #fff;
+  --green:#075e43;
+  --green-dark:#064532;
+  --green-light:#eaf5ef;
+  --gold:#d6ad55;
+  --text:#24332d;
+  --muted:#64756d;
+  --border:#dce7e0;
 }
-
-* { box-sizing: border-box; }
-
+* { box-sizing:border-box; }
 body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  color: var(--text);
-  background: #f3f7f4;
-  line-height: 1.5;
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  color:var(--text);
+  background:#f3f7f4;
+  line-height:1.5;
 }
-
-button, select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
+button,select { font:inherit; }
+button { cursor:pointer; }
 .site-header {
-  color: white;
-  background: linear-gradient(135deg, var(--green-dark), var(--green));
-  border-bottom: 4px solid var(--gold);
+  color:white;
+  background:linear-gradient(135deg,var(--green-dark),var(--green));
+  border-bottom:4px solid var(--gold);
 }
-
 .header-inner {
-  max-width: 1200px;
-  margin: auto;
-  padding: 18px 22px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
+  max-width:1200px;
+  margin:auto;
+  padding:18px 22px;
+  display:flex;
+  align-items:center;
+  gap:18px;
 }
-
 .logo {
-  width: 78px;
-  height: 78px;
-  object-fit: contain;
-  flex: 0 0 auto;
-  background: white;
-  border-radius: 10px;
-  padding: 4px;
+  width:78px;height:78px;object-fit:contain;
+  flex:0 0 auto;background:white;border-radius:10px;padding:4px;
 }
-
-.brand h1 {
-  margin: 0;
-  font-size: clamp(20px, 3vw, 29px);
-  letter-spacing: .5px;
-}
-
-.brand p {
-  margin: 4px 0 0;
-  color: #e3f2e9;
-  font-size: 13px;
-}
-
+.brand h1 { margin:0;font-size:clamp(20px,3vw,29px); }
+.brand p { margin:4px 0 0;color:#e3f2e9;font-size:13px; }
 nav {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  background: white;
-  border-bottom: 1px solid var(--border);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+  padding:12px;background:white;border-bottom:1px solid var(--border);
 }
-
 nav button {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: white;
-  color: var(--green);
-  padding: 9px 15px;
-  font-weight: 700;
+  border:1px solid var(--border);border-radius:8px;
+  background:white;color:var(--green);padding:9px 15px;font-weight:700;
 }
-
-nav button.active,
-nav button:hover {
-  background: var(--green);
-  color: white;
+nav button.active,nav button:hover { background:var(--green);color:white; }
+main { max-width:1200px;padding:24px 18px 40px;margin:auto; }
+.welcome,.panel {
+  background:white;border:1px solid var(--border);border-radius:12px;
+  padding:20px;margin-bottom:20px;box-shadow:0 4px 15px #12332208;
 }
-
-main {
-  max-width: 1200px;
-  padding: 24px 18px 40px;
-  margin: auto;
-}
-
-.welcome {
-  background: white;
-  border: 1px solid var(--border);
-  border-left: 5px solid var(--gold);
-  border-radius: 12px;
-  padding: 23px;
-  margin-bottom: 22px;
-  box-shadow: 0 4px 15px #12332208;
-}
-
-.welcome h2 {
-  margin: 0 0 7px;
-  color: var(--green);
-  font-size: clamp(22px, 3vw, 30px);
-}
-
-.welcome p { margin: 5px 0; }
-
-.panel {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 15px #12332208;
-}
-
-.panel h2 {
-  color: var(--green);
-  margin: 0 0 15px;
-  font-size: 21px;
-}
-
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: end;
-  gap: 14px;
-  margin-bottom: 18px;
-}
-
-.control-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  min-width: 220px;
-  flex: 1;
-}
-
-.control-group label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--muted);
-}
-
-select {
-  width: 100%;
-  border: 1px solid #cbd9d0;
-  border-radius: 8px;
-  padding: 11px 12px;
-  background: white;
-  color: var(--text);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.btn {
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid var(--green);
-  background: var(--green);
-  color: white;
-  font-weight: 700;
-}
-
-.btn:hover { background: var(--green-dark); }
-
-.btn.secondary {
-  background: white;
-  color: var(--green);
-}
-
-.btn.secondary:hover { background: var(--green-light); }
-
-.status {
-  background: #f1f7f3;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 11px 13px;
-  color: var(--muted);
-  font-size: 13px;
-  margin-bottom: 16px;
-  overflow-wrap: anywhere;
-}
-
-.status.error {
-  color: #9e2424;
-  background: #fff1f1;
-  border-color: #f1cccc;
-}
-
-.status.success {
-  color: #075e43;
-}
-
-.hidden { display: none !important; }
-
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: white;
-  font-size: 13px;
-}
-
-th, td {
-  border: 1px solid var(--border);
-  padding: 9px 8px;
-  text-align: center;
-  vertical-align: middle;
-}
-
-thead th {
-  background: var(--green);
-  color: white;
-  font-weight: 700;
-}
-
-tbody tr:nth-child(even) { background: #f7faf8; }
-
-tbody tr:hover { background: #edf6f0; }
-
-.schedule-table {
-  min-width: 760px;
-  table-layout: fixed;
-}
-
-.schedule-table th:first-child,
-.schedule-table td:first-child {
-  width: 92px;
-}
-
-.schedule-table th:nth-child(2),
-.schedule-table td:nth-child(2) {
-  width: 108px;
-}
-
-.schedule-cell {
-  min-height: 42px;
-  white-space: pre-line;
-}
-
-.schedule-cell strong {
-  display: block;
-  color: var(--green);
-  margin-bottom: 2px;
-}
-
-.schedule-cell small {
-  display: block;
-  color: #53685d;
-  margin-top: 2px;
-}
-
-.break-row td {
-  background: #f4efe0 !important;
-  color: #735b24;
-  font-weight: 700;
-}
-
-.special-row td {
-  background: #eaf5ef !important;
-  color: var(--green-dark);
-  font-weight: 700;
-}
-
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
-  margin: 15px 0;
-}
-
-.summary-card {
-  background: var(--green-light);
-  border: 1px solid #d6e9dc;
-  border-radius: 9px;
-  padding: 14px;
-}
-
-.summary-card span {
-  display: block;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.summary-card strong {
-  display: block;
-  color: var(--green);
-  font-size: 22px;
-  margin-top: 3px;
-}
-
-.empty {
-  text-align: center;
-  padding: 25px;
-  color: var(--muted);
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-}
-
-footer {
-  background: var(--green-dark);
-  color: #e5f1e9;
-  text-align: center;
-  padding: 18px;
-  font-size: 12px;
-}
-
-/* Area khusus cetak */
-.print-header {
-  display: none;
-}
+.welcome { border-left:5px solid var(--gold);padding:23px; }
+.welcome h2 { margin:0 0 7px;color:var(--green);font-size:clamp(22px,3vw,30px); }
+.welcome p { margin:5px 0; }
+.panel h2 { color:var(--green);margin:0 0 15px;font-size:21px; }
+.controls { display:flex;flex-wrap:wrap;align-items:end;gap:14px;margin-bottom:18px; }
+.control-group { display:flex;flex-direction:column;gap:5px;min-width:220px;flex:1; }
+.control-group label { font-size:13px;font-weight:700;color:var(--muted); }
+select { width:100%;border:1px solid #cbd9d0;border-radius:8px;padding:11px 12px;background:white;color:var(--text); }
+.actions { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px; }
+.btn { padding:10px 15px;border-radius:8px;border:1px solid var(--green);background:var(--green);color:white;font-weight:700; }
+.btn:hover { background:var(--green-dark); }
+.btn.secondary { background:white;color:var(--green); }
+.status { background:#f1f7f3;border:1px solid var(--border);border-radius:8px;padding:11px 13px;color:var(--muted);font-size:13px;margin-bottom:16px;overflow-wrap:anywhere; }
+.status.error { color:#9e2424;background:#fff1f1;border-color:#f1cccc; }
+.status.success { color:var(--green); }
+.hidden { display:none !important; }
+.table-wrap { width:100%;overflow-x:auto; }
+table { width:100%;border-collapse:collapse;background:white;font-size:13px; }
+th,td { border:1px solid var(--border);padding:9px 8px;text-align:center;vertical-align:middle; }
+thead th { background:var(--green);color:white;font-weight:700; }
+tbody tr:nth-child(even) { background:#f7faf8; }
+tbody tr:hover { background:#edf6f0; }
+.schedule-table { min-width:760px;table-layout:fixed; }
+.schedule-table th:first-child,.schedule-table td:first-child { width:7%; }
+.schedule-table th:nth-child(2),.schedule-table td:nth-child(2) { width:12%; }
+.schedule-cell { white-space:normal;line-height:1.2;overflow-wrap:anywhere; }
+.schedule-cell strong { display:block;color:var(--green);margin:0 0 2px;font-weight:700; }
+.schedule-cell small { display:block;color:#53685d;margin:0;font-size:11px;line-height:1.2; }
+.schedule-table hr { margin:3px 0;border:0;border-top:1px solid #d5ddd8; }
+.break-row td { background:#f4efe0 !important;color:#735b24;font-weight:700; }
+.special-row td { background:#eaf5ef !important;color:var(--green-dark);font-weight:700; }
+.summary { display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:15px 0; }
+.summary-card { background:var(--green-light);border:1px solid #d6e9dc;border-radius:9px;padding:14px; }
+.summary-card span { display:block;color:var(--muted);font-size:12px; }
+.summary-card strong { display:block;color:var(--green);font-size:22px;margin-top:3px; }
+.empty { text-align:center;padding:25px;color:var(--muted);border:1px dashed var(--border);border-radius:8px; }
+body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;padding:18px;font-size:12px; }
+.print-header,.print-meta,.print-footer { display:none; }
 
 @page {
-  size: A4 landscape;
-  margin: 8mm 8mm 14mm;
+  size:A4 landscape;
+  margin:7mm 7mm 10mm;
 }
 
+/* SATU ATURAN CETAK: tidak ada blok @media print yang bertumpuk */
 @media print {
   * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    -webkit-print-color-adjust:exact !important;
+    print-color-adjust:exact !important;
   }
-
-  html,
-  body {
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: white !important;
-    color: #111 !important;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 9px !important;
+  html,body {
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    background:white !important;
+    color:#111 !important;
+    font-family:Arial,Helvetica,sans-serif !important;
+    font-size:8px !important;
+    line-height:1.15 !important;
   }
-
-  .site-header,
-  nav,
-  .welcome,
-  .no-print,
-  .screen-only,
-  .panel > h2,
-  .status,
-  .summary-screen,
-  body > footer {
-    display: none !important;
+  .site-header,nav,.welcome,.no-print,.screen-only,
+  .panel > h2,.status,.summary-screen,body > footer {
+    display:none !important;
   }
-
   main {
-    display: block !important;
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
   }
-
   .panel {
-    display: none !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: white !important;
+    display:none !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    background:white !important;
   }
-
   body[data-view="kelas"] #kelasView,
   body[data-view="guru"] #guruView,
   body[data-view="piket"] #piketView {
-    display: block !important;
-    visibility: visible !important;
+    display:block !important;
+    visibility:visible !important;
   }
-
   .print-header {
-    display: block !important;
-    text-align: center !important;
-    margin: 0 0 4px !important;
-    color: #111 !important;
+    display:block !important;
+    text-align:center !important;
+    margin:0 0 3px !important;
+    color:#111 !important;
   }
-
   .print-header h1 {
-    margin: 0 !important;
-    font-size: 14px !important;
-    line-height: 1.2 !important;
-    letter-spacing: 0.5px;
+    margin:0 !important;
+    font-size:13px !important;
+    line-height:1.15 !important;
+    letter-spacing:.4px !important;
   }
-
   .print-header h2 {
-    display: block !important;
-    margin: 2px 0 5px !important;
-    font-size: 11px !important;
-    line-height: 1.2 !important;
-    color: #111 !important;
+    display:block !important;
+    margin:2px 0 4px !important;
+    font-size:10px !important;
+    line-height:1.15 !important;
+    color:#111 !important;
   }
-
   .print-meta {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
-    margin: 0 0 5px !important;
-    padding: 4px 0 !important;
-    border-top: 1px solid #555 !important;
-    border-bottom: 1px solid #555 !important;
-    font-size: 9px !important;
-    line-height: 1.2 !important;
-    font-weight: 700 !important;
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    gap:6px !important;
+    width:100% !important;
+    margin:0 0 4px !important;
+    padding:3px 0 !important;
+    border-top:1px solid #555 !important;
+    border-bottom:1px solid #555 !important;
+    font-size:8px !important;
+    line-height:1.15 !important;
+    font-weight:700 !important;
   }
-
-  .print-meta .meta-name {
-    flex: 1 1 40% !important;
-    text-align: left !important;
-  }
-
-  .print-meta .meta-total {
-    flex: 1 1 60% !important;
-    text-align: right !important;
-  }
-
+  .print-meta .meta-name { flex:1 1 40% !important;text-align:left !important; }
+  .print-meta .meta-total { flex:1 1 60% !important;text-align:right !important; }
   .table-wrap {
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: visible !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    overflow:visible !important;
+    margin:0 !important;
+    padding:0 !important;
   }
-
   table {
-    width: 100% !important;
-    max-width: 100% !important;
-    border-collapse: collapse !important;
-    table-layout: fixed !important;
-    font-size: 8px !important;
-    margin: 0 !important;
+    width:100% !important;
+    max-width:100% !important;
+    margin:0 !important;
+    border-collapse:collapse !important;
+    font-size:7px !important;
   }
-
-  th,
-  td {
-    border: 1px solid #555 !important;
-    padding: 3px 3px !important;
-    color: #111 !important;
-    text-align: center !important;
-    vertical-align: middle !important;
-    overflow-wrap: anywhere !important;
-    word-break: normal !important;
-    line-height: 1.15 !important;
+  th,td {
+    border:1px solid #555 !important;
+    padding:2px 2px !important;
+    color:#111 !important;
+    text-align:center !important;
+    vertical-align:middle !important;
+    overflow-wrap:anywhere !important;
+    word-break:normal !important;
+    line-height:1.1 !important;
   }
-
-  thead {
-    display: table-header-group !important;
-  }
-
-  thead th {
-    background: #e6eee8 !important;
-    color: #111 !important;
-    font-size: 8px !important;
-    font-weight: 700 !important;
-  }
-
+  thead { display:table-header-group !important; }
+  thead th { background:#e6eee8 !important;color:#111 !important;font-size:7px !important; }
   .schedule-table {
-    min-width: 0 !important;
-    width: 100% !important;
-    table-layout: fixed !important;
+    min-width:0 !important;
+    width:100% !important;
+    table-layout:fixed !important;
   }
-
-  .schedule-table th:first-child,
-  .schedule-table td:first-child {
-    width: 7% !important;
-  }
-
-  .schedule-table th:nth-child(2),
-  .schedule-table td:nth-child(2) {
-    width: 12% !important;
-  }
-
+  .schedule-table th:first-child,.schedule-table td:first-child { width:7% !important; }
+  .schedule-table th:nth-child(2),.schedule-table td:nth-child(2) { width:12% !important; }
   .schedule-cell {
-    min-height: 0 !important;
-    height: auto !important;
-    padding: 0 !important;
-    white-space: pre-line !important;
-    overflow-wrap: anywhere !important;
-    line-height: 1.1 !important;
+    min-height:0 !important;
+    height:auto !important;
+    padding:0 !important;
+    line-height:1.05 !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
   }
-
   .schedule-cell strong {
-    display: block !important;
-    margin: 0 0 1px !important;
-    color: #111 !important;
-    font-size: 8px !important;
-    line-height: 1.1 !important;
+    display:block !important;
+    margin:0 !important;
+    color:#111 !important;
+    font-size:7px !important;
+    line-height:1.05 !important;
   }
-
   .schedule-cell small {
-    display: block !important;
-    margin-top: 1px !important;
-    color: #222 !important;
-    font-size: 7px !important;
-    line-height: 1.1 !important;
+    display:block !important;
+    margin:0 !important;
+    color:#222 !important;
+    font-size:6.5px !important;
+    line-height:1.05 !important;
   }
-
   .schedule-table hr {
-    margin: 2px 0 !important;
-    border: 0 !important;
-    border-top: 1px solid #aaa !important;
+    margin:1px 0 !important;
+    border:0 !important;
+    border-top:1px solid #aaa !important;
   }
-
-  .break-row td,
-  .special-row td {
-    background: #f0f0f0 !important;
-    color: #111 !important;
-    font-weight: 700 !important;
+  .break-row td,.special-row td {
+    background:#f0f0f0 !important;
+    color:#111 !important;
+    font-weight:700 !important;
   }
-
+  /* Footer tidak fixed agar tidak memicu halaman tambahan */
   .print-footer {
-    display: block !important;
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: -10mm !important;
-    width: 100% !important;
-    padding-top: 3px !important;
-    border-top: 1px solid #aaa !important;
-    text-align: center !important;
-    color: #333 !important;
-    font-size: 8px !important;
-    line-height: 1.2 !important;
-    background: white !important;
+    display:block !important;
+    position:static !important;
+    width:100% !important;
+    margin-top:4px !important;
+    padding-top:3px !important;
+    border-top:1px solid #aaa !important;
+    text-align:center !important;
+    color:#333 !important;
+    font-size:7px !important;
+    line-height:1.1 !important;
+    background:white !important;
   }
-
   tr {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside:avoid !important;
+    page-break-inside:avoid !important;
   }
-
-  #kelasTable,
-  #guruTable,
-  #piketTable {
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
+  /* Jadwal piket tetap memakai seluruh kolom Excel */
+  #piketTable table { table-layout:auto !important;font-size:8px !important; }
+  #piketTable th,#piketTable td { padding:4px 3px !important; }
 }
 
-@media print {
-  body {
-    background: white !important;
-    color: #111 !important;
-    font-size: 10px;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .site-header,
-  nav,
-  .welcome,
-  .no-print,
-  .screen-only,
-  .panel > h2,
-  .status,
-  .summary-screen {
-    display: none !important;
-  }
-
-  main {
-    width: 100%;
-    max-width: none;
-    margin: 0;
-    padding: 0;
-  }
-
-  .panel {
-    display: none !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  body[data-view="kelas"] #kelasView,
-  body[data-view="guru"] #guruView,
-  body[data-view="piket"] #piketView {
-    display: block !important;
-  }
-
-  .print-header {
-    display: block !important;
-    text-align: center;
-    margin-bottom: 8px;
-    color: #111;
-  }
-
-  .print-header h1 {
-    margin: 0;
-    font-size: 16px;
-    letter-spacing: .6px;
-  }
-
-  .print-header h2 {
-    margin: 2px 0 8px;
-    font-size: 13px;
-    color: #111;
-  }
-
-  .print-meta {
-    display: flex !important;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    border-top: 1px solid #555;
-    border-bottom: 1px solid #555;
-    padding: 5px 0;
-    margin-bottom: 7px;
-    font-size: 10px;
-    font-weight: 700;
-  }
-
-  .print-meta .meta-name {
-    text-align: left;
-    flex: 1;
-  }
-
-  .print-meta .meta-total {
-    text-align: right;
-    flex: 1;
-  }
-
-  .table-wrap {
-    overflow: visible !important;
-  }
-
-  table {
-    width: 100% !important;
-    font-size: 9px !important;
-    border-collapse: collapse !important;
-  }
-
-  th, td {
-    border: 1px solid #555 !important;
-    padding: 5px 4px !important;
-    color: #111 !important;
-    overflow-wrap: anywhere;
-  }
-
-  thead th {
-    background: #e6eee8 !important;
-    color: #111 !important;
-  }
-
-  .schedule-table {
-    min-width: 0 !important;
-    table-layout: fixed;
-  }
-
-  .schedule-cell {
-    min-height: 0;
-  }
-
-  .schedule-cell strong,
-  .schedule-cell small {
-    color: #111 !important;
-  }
-
-  .break-row td,
-  .special-row td {
-    background: #f0f0f0 !important;
-    color: #111 !important;
-  }
-
-  .print-footer {
-    display: block !important;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: -11mm;
-    text-align: center;
-    font-size: 9px;
-    color: #333;
-    border-top: 1px solid #aaa;
-    padding-top: 4px;
-  }
-
-  tr {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-}
-
-.print-footer { display: none; }
-
-@media (max-width: 650px) {
-  .header-inner {
-    align-items: flex-start;
-    padding: 15px;
-    gap: 12px;
-  }
-
-  .logo {
-    width: 58px;
-    height: 58px;
-  }
-
-  .brand p { font-size: 12px; }
-
-  main { padding: 16px 10px 25px; }
-
-  .panel { padding: 14px; }
-
-  .control-group { min-width: 100%; }
+@media (max-width:650px) {
+  .header-inner { align-items:flex-start;padding:15px;gap:12px; }
+  .logo { width:58px;height:58px; }
+  .brand p { font-size:12px; }
+  main { padding:16px 10px 25px; }
+  .panel { padding:14px; }
+  .control-group { min-width:100%; }
 }
 </style>
 </head>
 
 <body data-view="kelas">
-
 <header class="site-header">
   <div class="header-inner">
-    <img
-      class="logo"
+    <img class="logo"
       src="https://lh3.googleusercontent.com/d/1OZheBPHDmVorHmBl4OyiU9YO_v2xv3YE"
-      alt="Logo resmi An-Nawa"
-      onerror="this.style.display='none'"
-    >
+      alt="Logo resmi An-Nawa" onerror="this.style.display='none'">
     <div class="brand">
       <h1>PONPES MODERN AN-NAWA</h1>
       <p>Sistem Informasi Jadwal Pelajaran</p>
@@ -757,15 +296,9 @@ footer {
 </header>
 
 <nav class="no-print">
-  <button type="button" class="active" data-target="kelasView" onclick="showView('kelas')">
-    Jadwal Per Kelas
-  </button>
-  <button type="button" data-target="guruView" onclick="showView('guru')">
-    Jadwal Per Guru
-  </button>
-  <button type="button" data-target="piketView" onclick="showView('piket')">
-    Jadwal Piket
-  </button>
+  <button type="button" class="active" data-target="kelasView" onclick="showView('kelas')">Jadwal Per Kelas</button>
+  <button type="button" data-target="guruView" onclick="showView('guru')">Jadwal Per Guru</button>
+  <button type="button" data-target="piketView" onclick="showView('piket')">Jadwal Piket</button>
 </nav>
 
 <main>
@@ -777,1025 +310,537 @@ footer {
 
   <div id="status" class="status">Memuat data jadwal dari file Excel...</div>
 
-  <!-- JADWAL PER KELAS -->
   <section id="kelasView" class="panel">
     <h2>Jadwal Pelajaran Per Kelas</h2>
-
     <div class="controls no-print">
       <div class="control-group">
         <label for="kelasSelect">Pilih Kelas</label>
-        <select id="kelasSelect">
-          <option value="">Memuat kelas...</option>
-        </select>
+        <select id="kelasSelect"><option value="">Memuat kelas...</option></select>
       </div>
     </div>
-
     <div class="actions no-print">
       <button class="btn" onclick="printCurrentView()">Cetak Jadwal</button>
       <button class="btn secondary" onclick="printCurrentView()">Simpan PDF</button>
     </div>
-
     <div class="print-header">
       <h1>PONPES MODERN AN-NAWA</h1>
       <h2>JADWAL PELAJARAN TAHUN AJARAN 2026-2027</h2>
     </div>
-
     <div class="print-meta">
       <div id="kelasPrintName" class="meta-name">Kelas: -</div>
       <div id="kelasPrintTotal" class="meta-total">Total JP: 0</div>
     </div>
-
     <div id="kelasSummary" class="summary summary-screen"></div>
     <div id="kelasTable" class="table-wrap"></div>
-
-    <div class="print-footer">
-      2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.
-    </div>
+    <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
 
-  <!-- JADWAL PER GURU -->
   <section id="guruView" class="panel hidden">
     <h2>Jadwal Pelajaran Per Guru</h2>
-
     <div class="controls no-print">
       <div class="control-group">
         <label for="guruSelect">Pilih Guru</label>
-        <select id="guruSelect">
-          <option value="">Memuat guru...</option>
-        </select>
+        <select id="guruSelect"><option value="">Memuat guru...</option></select>
       </div>
     </div>
-
     <div class="actions no-print">
       <button class="btn" onclick="printCurrentView()">Cetak Jadwal</button>
       <button class="btn secondary" onclick="printCurrentView()">Simpan PDF</button>
     </div>
-
     <div class="print-header">
       <h1>PONPES MODERN AN-NAWA</h1>
       <h2>JADWAL PELAJARAN TAHUN AJARAN 2026-2027</h2>
     </div>
-
     <div class="print-meta">
       <div id="guruPrintName" class="meta-name">Guru: -</div>
       <div id="guruPrintTotal" class="meta-total">Mengajar: 0 JP | Piket: 0 Sesi | Total Beban: 0</div>
     </div>
-
     <div id="guruSummary" class="summary summary-screen"></div>
     <div id="guruTable" class="table-wrap"></div>
-
-    <div class="print-footer">
-      2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.
-    </div>
+    <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
 
-  <!-- JADWAL PIKET -->
   <section id="piketView" class="panel hidden">
     <h2>Jadwal Piket</h2>
-
     <div class="actions no-print">
       <button class="btn" onclick="printCurrentView()">Cetak Jadwal Piket</button>
       <button class="btn secondary" onclick="printCurrentView()">Simpan PDF</button>
     </div>
-
     <div class="print-header">
       <h1>PONPES MODERN AN-NAWA</h1>
       <h2>JADWAL PIKET TAHUN AJARAN 2026-2027</h2>
     </div>
-
     <div class="print-meta">
       <div class="meta-name">Jadwal Piket Guru</div>
       <div id="piketPrintTotal" class="meta-total">Data piket: 0 baris</div>
     </div>
-
     <div id="piketTable" class="table-wrap"></div>
-
-    <div class="print-footer">
-      2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.
-    </div>
+    <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
 </main>
 
-<footer>
-  2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.
-</footer>
+<footer>2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</footer>
 
 <script>
 "use strict";
 
-/* =========================================================
-   KONFIGURASI DAN DATA
-========================================================= */
-
 const FILE_EXCEL = "./DATABASE.xlsx";
 const NAMA_SHEET_JADWAL = "JADWAL";
 const NAMA_SHEET_PIKET = "Jadwal Piket";
-
-const HARI = [
-  "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"
-];
-
-const state = {
-  jadwal: [],
-  piket: [],
-  piketHeaders: [],
-  namaSheet: [],
-  loaded: false
-};
-
+const HARI = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const state = { jadwal:[], piket:[], piketHeaders:[], namaSheet:[], loaded:false };
 const $ = id => document.getElementById(id);
 
 function normalize(value) {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[\s_\-./]+/g, "");
+  return String(value ?? "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[\s_\-./]+/g,"");
 }
-
-function clean(value) {
-  return String(value ?? "").trim();
+function clean(value) { return String(value ?? "").trim(); }
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
 }
-
-function setStatus(message, type = "") {
-  const el = $("status");
-  el.textContent = message;
-  el.className = "status" + (type ? " " + type : "");
+function setStatus(message,type="") {
+  const el=$("status");
+  el.textContent=message;
+  el.className="status"+(type?" "+type:"");
 }
-
-function isBlankRow(row) {
-  return !row || row.every(v => clean(v) === "");
-}
-
+function isBlankRow(row) { return !row || row.every(v=>clean(v)===""); }
 function normalizeDay(value) {
-  const v = normalize(value);
-
-  const aliases = {
-    senin: "Senin",
-    monday: "Senin",
-    selasa: "Selasa",
-    tuesday: "Selasa",
-    rabu: "Rabu",
-    wednesday: "Rabu",
-    kamis: "Kamis",
-    thursday: "Kamis",
-    jumat: "Jumat",
-    jumat: "Jumat",
-    friday: "Jumat",
-    sabtu: "Sabtu",
-    saturday: "Sabtu"
+  const v=normalize(value);
+  const aliases={
+    senin:"Senin",monday:"Senin",
+    selasa:"Selasa",tuesday:"Selasa",
+    rabu:"Rabu",wednesday:"Rabu",
+    kamis:"Kamis",thursday:"Kamis",
+    jumat:"Jumat",friday:"Jumat",
+    sabtu:"Sabtu",saturday:"Sabtu"
   };
-
   return aliases[v] || clean(value);
 }
-
-function findHeaderIndex(headers, candidates) {
-  const normalized = headers.map(normalize);
-  for (const candidate of candidates) {
-    const idx = normalized.indexOf(normalize(candidate));
-    if (idx >= 0) return idx;
+function findHeaderIndex(headers,candidates) {
+  const normalized=headers.map(normalize);
+  for(const candidate of candidates) {
+    const idx=normalized.indexOf(normalize(candidate));
+    if(idx>=0) return idx;
   }
   return -1;
 }
 
-/* =========================================================
-   MEMBACA SHEET JADWAL PELAJARAN
-========================================================= */
-
+/* MEMBACA JADWAL PELAJARAN */
 function parseScheduleSheet(sheet) {
-  const rows = XLSX.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: "",
-    raw: false
-  });
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+  if(!rows.length) return [];
+  let headerRowIndex=-1,headers=[];
 
-  if (!rows.length) return [];
-
-  let headerRowIndex = -1;
-  let headers = [];
-
-  for (let i = 0; i < Math.min(rows.length, 15); i++) {
-    const candidate = rows[i].map(clean);
-    const normalized = candidate.map(normalize);
-
-    const hasDay = normalized.some(x =>
-      ["hari", "day"].includes(x)
-    );
-    const hasPeriod = normalized.some(x =>
-      ["jp", "jamke", "jam", "period", "jamke-"].includes(x)
-    );
-    const hasClass = normalized.some(x =>
-      ["kelas", "class", "rombel"].includes(x)
-    );
-
-    if (hasDay && (hasPeriod || hasClass)) {
-      headerRowIndex = i;
-      headers = candidate;
-      break;
+  for(let i=0;i<Math.min(rows.length,15);i++) {
+    const candidate=rows[i].map(clean);
+    const normalized=candidate.map(normalize);
+    const hasDay=normalized.some(x=>["hari","day"].includes(x));
+    const hasPeriod=normalized.some(x=>["jp","jamke","jam","period"].includes(x));
+    const hasClass=normalized.some(x=>["kelas","class","rombel"].includes(x));
+    if(hasDay&&(hasPeriod||hasClass)) {
+      headerRowIndex=i;headers=candidate;break;
     }
   }
-
-  if (headerRowIndex < 0) {
-    throw new Error(
-      'Header sheet "JADWAL" tidak ditemukan. Pastikan ada kolom Hari, JP/Jam, dan Kelas.'
-    );
+  if(headerRowIndex<0) {
+    throw new Error('Header sheet "JADWAL" tidak ditemukan. Pastikan ada kolom Hari, JP/Jam, dan Kelas.');
   }
 
-  const idx = {
-    hari: findHeaderIndex(headers, ["Hari", "Day"]),
-    jp: findHeaderIndex(headers, ["JP", "Jam Ke", "Jam", "Period"]),
-    mulai: findHeaderIndex(headers, ["Mulai", "Jam Mulai", "Start"]),
-    selesai: findHeaderIndex(headers, ["Selesai", "Jam Selesai", "End"]),
-    guru: findHeaderIndex(headers, ["Guru", "Nama Guru", "Pengajar", "Teacher"]),
-    mapel: findHeaderIndex(headers, ["Mapel", "Mata Pelajaran", "Pelajaran", "Subject"]),
-    kelas: findHeaderIndex(headers, ["Kelas", "Class", "Rombel"])
+  const idx={
+    hari:findHeaderIndex(headers,["Hari","Day"]),
+    jp:findHeaderIndex(headers,["JP","Jam Ke","Jam","Period"]),
+    mulai:findHeaderIndex(headers,["Mulai","Jam Mulai","Start"]),
+    selesai:findHeaderIndex(headers,["Selesai","Jam Selesai","End"]),
+    guru:findHeaderIndex(headers,["Guru","Nama Guru","Pengajar","Teacher"]),
+    mapel:findHeaderIndex(headers,["Mapel","Mata Pelajaran","Pelajaran","Subject"]),
+    kelas:findHeaderIndex(headers,["Kelas","Class","Rombel"])
   };
-
-  const result = [];
-
-  for (let i = headerRowIndex + 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (isBlankRow(row)) continue;
-
-    const get = key => idx[key] >= 0 ? clean(row[idx[key]]) : "";
-
-    const item = {
-      hari: normalizeDay(get("hari")),
-      jp: get("jp"),
-      mulai: get("mulai"),
-      selesai: get("selesai"),
-      guru: get("guru"),
-      mapel: get("mapel"),
-      kelas: get("kelas")
+  const result=[];
+  for(let i=headerRowIndex+1;i<rows.length;i++) {
+    const row=rows[i];
+    if(isBlankRow(row)) continue;
+    const get=key=>idx[key]>=0?clean(row[idx[key]]):"";
+    const item={
+      hari:normalizeDay(get("hari")),jp:get("jp"),mulai:get("mulai"),
+      selesai:get("selesai"),guru:get("guru"),mapel:get("mapel"),kelas:get("kelas")
     };
-
-    if (!item.hari && !item.jp && !item.guru &&
-        !item.mapel && !item.kelas) continue;
-
+    if(!item.hari&&!item.jp&&!item.guru&&!item.mapel&&!item.kelas) continue;
     result.push(item);
   }
-
   return result;
 }
 
-/* =========================================================
-   MEMBACA SHEET PIKET SECARA DINAMIS
-   Seluruh kolom yang ada di Excel akan ditampilkan.
-========================================================= */
-
+/* MEMBACA JADWAL PIKET: SELURUH KOLOM EXCEL TETAP DITAMPILKAN */
 function parsePiketSheet(sheet) {
-  const rows = XLSX.utils.sheet_to_json(sheet, {
-    header: 1,
-    defval: "",
-    raw: false
-  });
+  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+  if(!rows.length) return {headers:[],data:[]};
+  let headerIndex=0,bestScore=-1;
 
-  if (!rows.length) {
-    return { headers: [], data: [] };
+  for(let i=0;i<Math.min(rows.length,15);i++) {
+    const row=rows[i].map(clean);
+    const filled=row.filter(Boolean).length;
+    if(!filled) continue;
+    const text=row.map(normalize);
+    let score=filled;
+    if(text.some(v=>/hari|day/.test(v))) score+=3;
+    if(text.some(v=>/guru|petugas|nama|piket/.test(v))) score+=3;
+    if(text.some(v=>/kelas|waktu|jam|keterangan|tugas/.test(v))) score+=2;
+    if(score>bestScore) { bestScore=score;headerIndex=i; }
+    if(score>=6) break;
   }
 
-  // Cari baris header yang paling mungkin, tidak harus baris pertama.
-  let headerIndex = 0;
-  let bestScore = -1;
-
-  for (let i = 0; i < Math.min(rows.length, 15); i++) {
-    const row = rows[i].map(clean);
-    const filled = row.filter(Boolean).length;
-    if (!filled) continue;
-
-    const text = row.map(normalize);
-    let score = filled;
-
-    if (text.some(v => /hari|day/.test(v))) score += 3;
-    if (text.some(v => /guru|petugas|nama|piket/.test(v))) score += 3;
-    if (text.some(v => /kelas|waktu|jam|keterangan|tugas/.test(v))) score += 2;
-
-    if (score > bestScore) {
-      bestScore = score;
-      headerIndex = i;
-    }
-
-    // Header yang memiliki beberapa label umum kemungkinan besar benar.
-    if (score >= 6) break;
-  }
-
-  let headers = rows[headerIndex].map((v, i) => clean(v) || ("Kolom " + (i + 1)));
-
-  // Buang kolom kosong di ujung kanan.
-  while (headers.length && /^Kolom \d+$/.test(headers[headers.length - 1])) {
-    const lastIndex = headers.length - 1;
-    const hasData = rows.slice(headerIndex + 1).some(row => clean(row[lastIndex]) !== "");
-    if (hasData) break;
+  const headers=rows[headerIndex].map((v,i)=>clean(v)||("Kolom "+(i+1)));
+  while(headers.length&&/^Kolom \d+$/.test(headers[headers.length-1])) {
+    const lastIndex=headers.length-1;
+    if(rows.slice(headerIndex+1).some(row=>clean(row[lastIndex])!=="")) break;
     headers.pop();
   }
 
-  const data = [];
-
-  for (let i = headerIndex + 1; i < rows.length; i++) {
-    const row = rows[i] || [];
-    if (isBlankRow(row)) continue;
-
-    // Lewati baris yang mengulang header.
-    const normalizedRow = row.map(normalize);
-    const normalizedHeaders = headers.map(normalize);
-    const repeatedHeaderCount = normalizedRow.filter((v, j) =>
-      v && v === normalizedHeaders[j]
-    ).length;
-
-    if (repeatedHeaderCount >= Math.min(2, headers.length)) continue;
-
-    const obj = {};
-    headers.forEach((header, j) => {
-      obj[header] = clean(row[j]);
-    });
-
+  const data=[];
+  for(let i=headerIndex+1;i<rows.length;i++) {
+    const row=rows[i]||[];
+    if(isBlankRow(row)) continue;
+    const normalizedRow=row.map(normalize);
+    const normalizedHeaders=headers.map(normalize);
+    const repeated=normalizedRow.filter((v,j)=>v&&v===normalizedHeaders[j]).length;
+    if(repeated>=Math.min(2,headers.length)) continue;
+    const obj={};
+    headers.forEach((header,j)=>obj[header]=clean(row[j]));
     data.push(obj);
   }
-
-  return { headers, data };
+  return {headers,data};
 }
-
-/* =========================================================
-   MEMUAT WORKBOOK
-========================================================= */
 
 async function loadWorkbook() {
   setStatus("Memuat file DATABASE.xlsx...");
-
   try {
-    if (typeof XLSX === "undefined") {
-      throw new Error("Pustaka pembaca Excel gagal dimuat. Periksa koneksi internet.");
-    }
+    if(typeof XLSX==="undefined") throw new Error("Pustaka pembaca Excel gagal dimuat. Periksa koneksi internet.");
+    const response=await fetch(FILE_EXCEL+"?updated="+Date.now(),{cache:"no-store"});
+    if(!response.ok) throw new Error("File Excel tidak dapat dibaca (HTTP "+response.status+"). Pastikan DATABASE.xlsx satu folder dengan index.html.");
+    const buffer=await response.arrayBuffer();
+    const workbook=XLSX.read(buffer,{type:"array"});
+    state.namaSheet=workbook.SheetNames.slice();
 
-    const response = await fetch(FILE_EXCEL + "?updated=" + Date.now(), {
-      cache: "no-store"
-    });
+    const sheetJadwal=workbook.Sheets[NAMA_SHEET_JADWAL];
+    const piketSheetName=workbook.SheetNames.find(name=>normalize(name)===normalize(NAMA_SHEET_PIKET));
+    const sheetPiket=piketSheetName?workbook.Sheets[piketSheetName]:null;
 
-    if (!response.ok) {
-      throw new Error(
-        "File Excel tidak dapat dibaca (HTTP " + response.status +
-        "). Pastikan DATABASE.xlsx berada satu folder dengan index.html."
-      );
-    }
+    if(!sheetJadwal) throw new Error('Sheet "JADWAL" tidak ditemukan. Sheet tersedia: '+workbook.SheetNames.join(", "));
+    if(!sheetPiket) throw new Error('Sheet "Jadwal Piket" tidak ditemukan. Sheet tersedia: '+workbook.SheetNames.join(", "));
 
-    const buffer = await response.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: "array" });
-
-    state.namaSheet = workbook.SheetNames.slice();
-
-    const sheetJadwal = workbook.Sheets[NAMA_SHEET_JADWAL];
-
-    // Nama sheet dicocokkan tanpa membedakan huruf besar/kecil.
-    const piketSheetName = workbook.SheetNames.find(
-      name => normalize(name) === normalize(NAMA_SHEET_PIKET)
-    );
-    const sheetPiket = piketSheetName ? workbook.Sheets[piketSheetName] : null;
-
-    if (!sheetJadwal) {
-      throw new Error(
-        'Sheet "' + NAMA_SHEET_JADWAL + '" tidak ditemukan. Sheet tersedia: ' +
-        workbook.SheetNames.join(", ")
-      );
-    }
-
-    if (!sheetPiket) {
-      throw new Error(
-        'Sheet "' + NAMA_SHEET_PIKET + '" tidak ditemukan. Sheet tersedia: ' +
-        workbook.SheetNames.join(", ")
-      );
-    }
-
-    state.jadwal = parseScheduleSheet(sheetJadwal);
-
-    const parsedPiket = parsePiketSheet(sheetPiket);
-    state.piketHeaders = parsedPiket.headers;
-    state.piket = parsedPiket.data;
+    state.jadwal=parseScheduleSheet(sheetJadwal);
+    const parsedPiket=parsePiketSheet(sheetPiket);
+    state.piketHeaders=parsedPiket.headers;
+    state.piket=parsedPiket.data;
 
     renderClassOptions();
     renderTeacherOptions();
     renderPiketTable();
-
-    state.loaded = true;
+    state.loaded=true;
     renderClassSchedule();
     renderTeacherSchedule();
 
-    setStatus(
-      "Data berhasil dimuat. Jadwal pelajaran: " + state.jadwal.length +
-      " baris; Jadwal Piket: " + state.piket.length +
-      " baris. Sheet piket: " + piketSheetName + ".",
-      "success"
-    );
-
-  } catch (error) {
-    console.error("Gagal memuat workbook:", error);
-    setStatus("Gagal memuat data: " + error.message, "error");
-
-    $("kelasTable").innerHTML =
-      '<div class="empty">Jadwal kelas belum dapat ditampilkan.</div>';
-
-    $("guruTable").innerHTML =
-      '<div class="empty">Jadwal guru belum dapat ditampilkan.</div>';
-
-    $("piketTable").innerHTML =
-      '<div class="empty">Jadwal piket belum dapat ditampilkan. Periksa pesan kesalahan di atas.</div>';
+    setStatus("Data berhasil dimuat. Jadwal pelajaran: "+state.jadwal.length+
+      " baris; Jadwal Piket: "+state.piket.length+" baris. Sheet piket: "+piketSheetName+".","success");
+  } catch(error) {
+    console.error("Gagal memuat workbook:",error);
+    setStatus("Gagal memuat data: "+error.message,"error");
+    $("kelasTable").innerHTML='<div class="empty">Jadwal kelas belum dapat ditampilkan.</div>';
+    $("guruTable").innerHTML='<div class="empty">Jadwal guru belum dapat ditampilkan.</div>';
+    $("piketTable").innerHTML='<div class="empty">Jadwal piket belum dapat ditampilkan. Periksa pesan kesalahan di atas.</div>';
   }
 }
 
-/* =========================================================
-   DROPDOWN KELAS DAN GURU
-========================================================= */
-
+/* DROPDOWN */
 function uniqueSorted(values) {
-  const map = new Map();
-  values.map(clean).filter(Boolean).forEach(v => {
-    const key = v.toLocaleLowerCase("id");
-    if (!map.has(key)) map.set(key, v);
+  const map=new Map();
+  values.map(clean).filter(Boolean).forEach(v=>{
+    const key=v.toLocaleLowerCase("id");
+    if(!map.has(key)) map.set(key,v);
   });
-
-  return Array.from(map.values()).sort((a, b) =>
-    a.localeCompare(b, "id", { numeric: true, sensitivity: "base" })
-  );
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b,"id",{numeric:true,sensitivity:"base"}));
 }
-
-function fillSelect(selectId, values, placeholder) {
-  const select = $(selectId);
-  const previousValue = select.value;
-
-  select.innerHTML = "";
-
-  const first = document.createElement("option");
-  first.value = "";
-  first.textContent = placeholder;
-  select.appendChild(first);
-
-  values.forEach(value => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    select.appendChild(option);
+function fillSelect(selectId,values,placeholder) {
+  const select=$(selectId),previousValue=select.value;
+  select.innerHTML="";
+  const first=document.createElement("option");
+  first.value="";first.textContent=placeholder;select.appendChild(first);
+  values.forEach(value=>{
+    const option=document.createElement("option");
+    option.value=value;option.textContent=value;select.appendChild(option);
   });
-
-  if (values.includes(previousValue)) {
-    select.value = previousValue;
-  } else if (values.length) {
-    select.value = values[0];
-  }
+  if(values.includes(previousValue)) select.value=previousValue;
+  else if(values.length) select.value=values[0];
 }
-
 function renderClassOptions() {
-  const classes = uniqueSorted(state.jadwal.map(r => r.kelas));
-  fillSelect("kelasSelect", classes, "-- Pilih Kelas --");
+  fillSelect("kelasSelect",uniqueSorted(state.jadwal.map(r=>r.kelas)),"-- Pilih Kelas --");
 }
-
 function renderTeacherOptions() {
-  const teachers = uniqueSorted(
-    state.jadwal.map(r => r.guru)
-      .concat(getPiketTeacherNames())
-  );
-
-  fillSelect("guruSelect", teachers, "-- Pilih Guru --");
+  fillSelect("guruSelect",uniqueSorted(state.jadwal.map(r=>r.guru).concat(getPiketTeacherNames())),"-- Pilih Guru --");
 }
+$("kelasSelect").addEventListener("change",renderClassSchedule);
+$("guruSelect").addEventListener("change",renderTeacherSchedule);
 
-$("kelasSelect").addEventListener("change", renderClassSchedule);
-$("guruSelect").addEventListener("change", renderTeacherSchedule);
-
-/* =========================================================
-   FUNGSI JADWAL
-========================================================= */
-
+/* FUNGSI JADWAL */
 function periodNumber(value) {
-  const match = String(value ?? "").match(/\d+/);
-  return match ? Number(match[0]) : 99;
+  const match=String(value??"").match(/\d+/);
+  return match?Number(match[0]):99;
 }
-
 function timeText(value) {
-  const text = clean(value);
-  if (!text) return "";
-
-  // Format waktu umum seperti 07:00 atau 7.00.
-  const match = text.match(/^(\d{1,2})[:.](\d{1,2})$/);
-  if (match) {
-    return String(match[1]).padStart(2, "0") + ":" +
-           String(match[2]).padStart(2, "0");
-  }
-
+  const text=clean(value);
+  if(!text) return "";
+  const match=text.match(/^(\d{1,2})[:.](\d{1,2})$/);
+  if(match) return String(match[1]).padStart(2,"0")+"."+String(match[2]).padStart(2,"0");
   return text;
 }
-
 function slotText(r) {
-  const start = timeText(r.mulai);
-  const end = timeText(r.selesai);
-
-  if (start && end) return start + "–" + end;
-  if (start) return start;
-  if (end) return end;
-
+  const start=timeText(r.mulai),end=timeText(r.selesai);
+  if(start&&end) return start+"–"+end;
+  if(start) return start;
+  if(end) return end;
   return "";
 }
-
+function getDefaultTime(jp) {
+  const times={
+    1:"07.00–07.40",2:"07.40–08.20",3:"08.20–09.00",
+    4:"09.00–09.40",5:"09.40–10.20",6:"10.20–11.00",7:"11.00–11.40"
+  };
+  return times[jp]||"";
+}
+function isBreakRow(r) {
+  return /istirahat|waktu\s*rehat|break/i.test(clean(r.mapel)+" "+clean(r.guru)+" "+clean(r.kelas));
+}
 function isSpecialRow(r) {
-  const text = (r.mapel + " " + r.guru + " " + r.kelas).toLowerCase();
-  return /shalat jumat|sholat jumat|jumat|pramuka/.test(text);
+  return /shalat jumat|sholat jumat|jumat|pramuka/i.test(clean(r.mapel)+" "+clean(r.guru)+" "+clean(r.kelas));
 }
-
 function isGeneralRow(r) {
-  const kelas = normalize(r.kelas);
-  const guru = normalize(r.guru);
-
-  return !r.kelas ||
-    kelas === "semua" ||
-    kelas === "seluruhkelas" ||
-    kelas === "-" ||
-    !r.guru ||
-    guru === "-";
+  const kelas=normalize(r.kelas),guru=normalize(r.guru);
+  return !r.kelas||kelas==="semua"||kelas==="seluruhkelas"||kelas==="-"||!r.guru||guru==="-";
 }
-
 function daySort(day) {
-  const index = HARI.findIndex(d => normalize(d) === normalize(day));
-  return index < 0 ? 99 : index;
+  const index=HARI.findIndex(d=>normalize(d)===normalize(day));
+  return index<0?99:index;
 }
-
 function sortSchedule(rows) {
-  return rows.slice().sort((a, b) =>
-    daySort(a.hari) - daySort(b.hari) ||
-    periodNumber(a.jp) - periodNumber(b.jp)
-  );
+  return rows.slice().sort((a,b)=>daySort(a.hari)-daySort(b.hari)||periodNumber(a.jp)-periodNumber(b.jp));
 }
-
-function displayCell(r, mode) {
-  const mapel = clean(r.mapel) || "Kegiatan";
-  const guru = clean(r.guru);
-  const detail = mode === "kelas" ? guru : "";
-
-  return `
-    <div class="schedule-cell">
-      <strong>${escapeHTML(mapel)}</strong>
-      ${detail ? `<small>${escapeHTML(detail)}</small>` : ""}
-    </div>
-  `;
+function displayCell(r,mode) {
+  const mapel=clean(r.mapel)||"Kegiatan";
+  const guru=clean(r.guru);
+  const detail=mode==="kelas"?guru:"";
+  return '<div class="schedule-cell"><strong>'+escapeHTML(mapel)+'</strong>'+
+    (detail?'<small>'+escapeHTML(detail)+'</small>':"")+'</div>';
 }
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
-}
-
 function getRowsForClass(className) {
-  return sortSchedule(state.jadwal.filter(r =>
-    r.kelas === className ||
-    (isGeneralRow(r) && r.hari && r.jp)
+  return sortSchedule(state.jadwal.filter(r=>
+    !isBreakRow(r)&&(r.kelas===className||(isGeneralRow(r)&&r.hari&&r.jp))
+  ));
+}
+function getRowsForTeacher(teacherName) {
+  const wanted=normalize(teacherName);
+  return sortSchedule(state.jadwal.filter(r=>
+    !isBreakRow(r)&&(normalize(r.guru)===wanted||(isGeneralRow(r)&&isSpecialRow(r)))
   ));
 }
 
-function getRowsForTeacher(teacherName) {
-  const wanted = normalize(teacherName);
-
-  const teachingRows = state.jadwal.filter(r =>
-    normalize(r.guru) === wanted ||
-    (isGeneralRow(r) && isSpecialRow(r))
-  );
-
-  return sortSchedule(teachingRows);
+/* WAKTU DIAMBIL DARI EXCEL, JIKA TERSEDIA */
+function getPeriodTime(rows,jp) {
+  const rowWithTime=rows.find(r=>periodNumber(r.jp)===jp&&slotText(r));
+  return rowWithTime?slotText(rowWithTime):getDefaultTime(jp);
 }
 
+/* TABEL JADWAL: ISTIRAHAT HANYA DIBUAT SEKALI SETELAH JP 2 DAN JP 4 */
+function buildWeeklyTable(rows,mode) {
+  const periods=[1,2,3,4,5,6,7];
+  const bySlot={};
 
-function getPeriodTime(rows, jp) {
-  const rowWithTime = rows.find(r =>
-    periodNumber(r.jp) === jp && slotText(r)
-  );
-
-  if (rowWithTime) {
-    return slotText(rowWithTime);
-  }
-
-  return getDefaultTime(jp);
-}
-
-function buildWeeklyTable(rows, mode) {
-  const periods = [1, 2, 3, 4, 5, 6, 7];
-
-  // Kelompokkan jadwal berdasarkan hari dan JP.
-  const bySlot = {};
-
-  rows.forEach(r => {
-    const day = HARI.find(
-      d => normalize(d) === normalize(r.hari)
-    );
-
-    const jp = periodNumber(r.jp);
-
-    if (!day || jp < 1 || jp > 7) return;
-
-    const key = day + "|" + jp;
-
-    if (!bySlot[key]) {
-      bySlot[key] = [];
-    }
-
+  rows.forEach(r=>{
+    // Jangan tampilkan baris ISTIRAHAT dari Excel sebagai jam pelajaran.
+    if(isBreakRow(r)) return;
+    const day=HARI.find(d=>normalize(d)===normalize(r.hari));
+    const jp=periodNumber(r.jp);
+    if(!day||jp<1||jp>7) return;
+    const key=day+"|"+jp;
+    if(!bySlot[key]) bySlot[key]=[];
     bySlot[key].push(r);
   });
 
-  // Buat header tabel jadwal.
-  let html = '<table class="schedule-table">';
-  html += "<thead><tr>";
-  html += "<th>Jam Ke</th>";
-  html += "<th>Waktu</th>";
+  let html='<table class="schedule-table"><thead><tr>';
+  html+='<th>Jam Ke</th><th>Waktu</th>';
+  HARI.forEach(day=>html+='<th>'+escapeHTML(day)+'</th>');
+  html+='</tr></thead><tbody>';
 
-  HARI.forEach(day => {
-    html += `<th>${escapeHTML(day)}</th>`;
-  });
+  periods.forEach(jp=>{
+    html+='<tr><td>'+jp+'</td><td>'+escapeHTML(getPeriodTime(rows,jp))+'</td>';
 
-  html += "</tr></thead><tbody>";
+    HARI.forEach(day=>{
+      let entries=bySlot[day+"|"+jp]||[];
 
-  // Buat baris untuk setiap jam pelajaran.
-  periods.forEach(jp => {
-    html += "<tr>";
-
-    // Kolom nomor jam pelajaran.
-    html += `<td>${jp}</td>`;
-
-    // Kolom waktu berada di kolom B.
-    html += `<td>${escapeHTML(getPeriodTime(rows, jp))}</td>`;
-
-    // Buat kolom jadwal untuk setiap hari.
-    HARI.forEach(day => {
-      let entries = bySlot[day + "|" + jp] || [];
-
-      // Jumat JP 6: Shalat Jumat untuk semua kelas.
-      if (
-        day === "Jumat" &&
-        jp === 6 &&
-        !entries.length
-      ) {
-        entries = [{
-          hari: day,
-          jp: String(jp),
-          mulai: "",
-          selesai: "",
-          guru: "",
-          kelas: "Semua",
-          mapel: "Shalat Jumat"
-        }];
+      if(day==="Jumat"&&jp===6&&!entries.length) {
+        entries=[{hari:day,jp:String(jp),mulai:"",selesai:"",guru:"",kelas:"Semua",mapel:"Shalat Jumat"}];
+      }
+      if(day==="Jumat"&&jp===7&&!entries.length) {
+        entries=[{hari:day,jp:String(jp),mulai:"",selesai:"",guru:"",kelas:"Semua",mapel:"Pramuka"}];
       }
 
-      // Jumat JP 7: Pramuka untuk semua kelas.
-      if (
-        day === "Jumat" &&
-        jp === 7 &&
-        !entries.length
-      ) {
-        entries = [{
-          hari: day,
-          jp: String(jp),
-          mulai: "",
-          selesai: "",
-          guru: "",
-          kelas: "Semua",
-          mapel: "Pramuka"
-        }];
-      }
-
-      // Tampilkan mata pelajaran sesuai mode kelas atau guru.
-      const cellContent = entries.length
-        ? entries
-            .map(r => displayCell(r, mode))
-            .join("<hr>")
-        : "—";
-
-      // Tandai kegiatan khusus.
-      const specialClass = entries.some(isSpecialRow)
-        ? "special-row"
-        : "";
-
-      html += `<td class="${specialClass}">${cellContent}</td>`;
+      const content=entries.length?entries.map(r=>displayCell(r,mode)).join("<hr>"):"—";
+      const special=entries.some(isSpecialRow)?"special-row":"";
+      html+='<td class="'+special+'">'+content+'</td>';
     });
 
-    html += "</tr>";
+    html+='</tr>';
 
-    // ISTIRAHAT 1 setelah JP 2.
-    if (jp === 2) {
-      html += `
-        <tr class="break-row">
-          <td></td>
-          <td></td>
-          <td colspan="${HARI.length}">ISTIRAHAT 1</td>
-        </tr>
-      `;
+    if(jp===2) {
+      html+='<tr class="break-row"><td></td><td></td><td colspan="6">ISTIRAHAT 1</td></tr>';
     }
-
-    // ISTIRAHAT 2 setelah JP 4.
-    if (jp === 4) {
-      html += `
-        <tr class="break-row">
-          <td></td>
-          <td></td>
-          <td colspan="${HARI.length}">ISTIRAHAT 2</td>
-        </tr>
-      `;
+    if(jp===4) {
+      html+='<tr class="break-row"><td></td><td></td><td colspan="6">ISTIRAHAT 2</td></tr>';
     }
   });
 
-  html += "</tbody></table>";
-
+  html+='</tbody></table>';
   return html;
 }
 
-function getDefaultTime(jp) {
-  // Waktu default hanya dipakai jika file Excel tidak memiliki kolom waktu.
-  // Jika workbook memiliki waktu per baris, waktu aslinya ditampilkan di sel.
-  const defaultTimes = {
-    1: "07.00–07.40",
-    2: "07.40–08.20",
-    3: "08.20–09.00",
-    4: "09.00–09.40",
-    5: "09.40–10.20",
-    6: "10.20–11.00",
-    7: "11.00–11.40"
-  };
-
-  return defaultTimes[jp] || "";
-}
-
-/* =========================================================
-   HITUNG JP DAN BEBAN GURU
-========================================================= */
-
+/* HITUNG JAM PELAJARAN */
 function countUniquePeriods(rows) {
-  const unique = new Set();
-
-  rows.forEach(r => {
-    if (!r.hari || !r.jp) return;
-    if (isSpecialRow(r)) return;
-
-    unique.add(
-      normalize(r.hari) + "|" +
-      periodNumber(r.jp) + "|" +
-      normalize(r.kelas) + "|" +
-      normalize(r.mapel)
-    );
+  const unique=new Set();
+  rows.forEach(r=>{
+    if(!r.hari||!r.jp||isSpecialRow(r)||isBreakRow(r)) return;
+    unique.add(normalize(r.hari)+"|"+periodNumber(r.jp)+"|"+normalize(r.kelas)+"|"+normalize(r.mapel));
   });
-
   return unique.size;
 }
-
 function countClassPeriods(className) {
-  const rows = state.jadwal.filter(r =>
-    r.kelas === className &&
-    r.hari &&
-    r.jp &&
-    !isSpecialRow(r)
-  );
-
-  return countUniquePeriods(rows);
+  return countUniquePeriods(state.jadwal.filter(r=>r.kelas===className&&r.hari&&r.jp));
 }
-
 function countTeacherPeriods(teacherName) {
-  const wanted = normalize(teacherName);
-
-  const rows = state.jadwal.filter(r =>
-    normalize(r.guru) === wanted &&
-    r.hari &&
-    r.jp &&
-    !isSpecialRow(r)
-  );
-
-  return countUniquePeriods(rows);
+  const wanted=normalize(teacherName);
+  return countUniquePeriods(state.jadwal.filter(r=>normalize(r.guru)===wanted&&r.hari&&r.jp));
 }
 
-/* =========================================================
-   MEMBACA NAMA GURU DARI SHEET PIKET
-========================================================= */
-
+/* NAMA GURU DAN JUMLAH PIKET */
 function getPiketTeacherNames() {
-  if (!state.piketHeaders.length) return [];
-
-  const teacherColumnIndices = [];
-
-  state.piketHeaders.forEach((header, i) => {
-    const h = normalize(header);
-    if (/guru|petugas|nama|piket/.test(h)) {
-      teacherColumnIndices.push(header);
-    }
-  });
-
-  const names = [];
-
-  state.piket.forEach(row => {
-    teacherColumnIndices.forEach(header => {
-      const value = clean(row[header]);
-      if (!value) return;
-
-      value.split(/\n|,|;|\/|&/).map(clean).forEach(name => {
-        if (!name) return;
-        if (/^(guru|petugas|nama|piket|tidak ada|-)$/.test(normalize(name))) return;
-        names.push(name);
+  if(!state.piketHeaders.length) return [];
+  const columns=state.piketHeaders.filter(header=>/guru|petugas|nama|piket/i.test(normalize(header)));
+  const names=[];
+  state.piket.forEach(row=>{
+    columns.forEach(header=>{
+      clean(row[header]).split(/\n|,|;|\/|&/).map(clean).forEach(name=>{
+        if(name&&!/^(guru|petugas|nama|piket|tidak ada|-)$/i.test(name)) names.push(name);
       });
     });
   });
-
   return uniqueSorted(names);
 }
-
 function countTeacherPiket(teacherName) {
-  const wanted = normalize(teacherName);
-  if (!wanted) return 0;
-
-  let count = 0;
-
-  state.piket.forEach(row => {
-    let found = false;
-
-    state.piketHeaders.forEach(header => {
-      const h = normalize(header);
-      if (!/guru|petugas|nama|piket/.test(h)) return;
-
-      const value = clean(row[header]);
-      const names = value.split(/\n|,|;|\/|&/).map(normalize);
-
-      if (names.includes(wanted)) found = true;
+  const wanted=normalize(teacherName);
+  if(!wanted) return 0;
+  let count=0;
+  state.piket.forEach(row=>{
+    let found=false;
+    state.piketHeaders.forEach(header=>{
+      if(!/guru|petugas|nama|piket/i.test(normalize(header))) return;
+      const names=clean(row[header]).split(/\n|,|;|\/|&/).map(normalize);
+      if(names.includes(wanted)) found=true;
     });
-
-    if (found) count++;
+    if(found) count++;
   });
-
   return count;
 }
 
-/* =========================================================
-   RENDER JADWAL KELAS
-========================================================= */
-
+/* TAMPILKAN JADWAL KELAS */
 function renderClassSchedule() {
-  if (!state.loaded) return;
-
-  const className = $("kelasSelect").value;
-
-  if (!className) {
-    $("kelasTable").innerHTML = '<div class="empty">Pilih kelas terlebih dahulu.</div>';
-    $("kelasSummary").innerHTML = "";
-    $("kelasPrintName").textContent = "Kelas: -";
-    $("kelasPrintTotal").textContent = "Total JP: 0";
+  if(!state.loaded) return;
+  const className=$("kelasSelect").value;
+  if(!className) {
+    $("kelasTable").innerHTML='<div class="empty">Pilih kelas terlebih dahulu.</div>';
+    $("kelasSummary").innerHTML="";
+    $("kelasPrintName").textContent="Kelas: -";
+    $("kelasPrintTotal").textContent="Total JP: 0";
     return;
   }
-
-  const rows = getRowsForClass(className);
-  const total = countClassPeriods(className);
-
-  $("kelasPrintName").textContent = "Kelas: " + className;
-  $("kelasPrintTotal").textContent = "Total JP: " + total;
-
-  $("kelasSummary").innerHTML = `
-    <div class="summary-card">
-      <span>Kelas</span>
-      <strong>${escapeHTML(className)}</strong>
-    </div>
-    <div class="summary-card">
-      <span>Total JP terjadwal</span>
-      <strong>${total} JP</strong>
-    </div>
-    <div class="summary-card">
-      <span>Hari belajar</span>
-      <strong>${new Set(rows.map(r => r.hari).filter(Boolean)).size}</strong>
-    </div>
-  `;
-
-  $("kelasTable").innerHTML = buildWeeklyTable(rows, "kelas");
+  const rows=getRowsForClass(className),total=countClassPeriods(className);
+  $("kelasPrintName").textContent="Kelas: "+className;
+  $("kelasPrintTotal").textContent="Total JP: "+total;
+  $("kelasSummary").innerHTML=
+    '<div class="summary-card"><span>Kelas</span><strong>'+escapeHTML(className)+'</strong></div>'+
+    '<div class="summary-card"><span>Total JP terjadwal</span><strong>'+total+' JP</strong></div>'+
+    '<div class="summary-card"><span>Hari belajar</span><strong>'+new Set(rows.map(r=>r.hari).filter(Boolean)).size+'</strong></div>';
+  $("kelasTable").innerHTML=buildWeeklyTable(rows,"kelas");
 }
 
-/* =========================================================
-   RENDER JADWAL GURU
-========================================================= */
-
+/* TAMPILKAN JADWAL GURU */
 function renderTeacherSchedule() {
-  if (!state.loaded) return;
-
-  const teacherName = $("guruSelect").value;
-
-  if (!teacherName) {
-    $("guruTable").innerHTML = '<div class="empty">Pilih guru terlebih dahulu.</div>';
-    $("guruSummary").innerHTML = "";
-    $("guruPrintName").textContent = "Guru: -";
-    $("guruPrintTotal").textContent = "Mengajar: 0 JP | Piket: 0 Sesi | Total Beban: 0";
+  if(!state.loaded) return;
+  const teacherName=$("guruSelect").value;
+  if(!teacherName) {
+    $("guruTable").innerHTML='<div class="empty">Pilih guru terlebih dahulu.</div>';
+    $("guruSummary").innerHTML="";
+    $("guruPrintName").textContent="Guru: -";
+    $("guruPrintTotal").textContent="Mengajar: 0 JP | Piket: 0 Sesi | Total Beban: 0";
     return;
   }
+  const rows=getRowsForTeacher(teacherName);
+  const teaching=countTeacherPeriods(teacherName);
+  const piket=countTeacherPiket(teacherName);
+  const total=teaching+piket;
 
-  const rows = getRowsForTeacher(teacherName);
-  const teaching = countTeacherPeriods(teacherName);
-  const piket = countTeacherPiket(teacherName);
-  const total = teaching + piket;
-
-  $("guruPrintName").textContent = "Guru: " + teacherName;
-  $("guruPrintTotal").textContent =
-    `Mengajar: ${teaching} JP | Piket: ${piket} Sesi | Total Beban: ${total}`;
-
-  $("guruSummary").innerHTML = `
-    <div class="summary-card">
-      <span>Nama Guru</span>
-      <strong>${escapeHTML(teacherName)}</strong>
-    </div>
-    <div class="summary-card">
-      <span>Jam Mengajar</span>
-      <strong>${teaching} JP</strong>
-    </div>
-    <div class="summary-card">
-      <span>Jadwal Piket</span>
-      <strong>${piket} Sesi</strong>
-    </div>
-    <div class="summary-card">
-      <span>Total Beban</span>
-      <strong>${total}</strong>
-    </div>
-  `;
-
-  $("guruTable").innerHTML = buildWeeklyTable(rows, "guru");
+  $("guruPrintName").textContent="Guru: "+teacherName;
+  $("guruPrintTotal").textContent="Mengajar: "+teaching+" JP | Piket: "+piket+" Sesi | Total Beban: "+total;
+  $("guruSummary").innerHTML=
+    '<div class="summary-card"><span>Nama Guru</span><strong>'+escapeHTML(teacherName)+'</strong></div>'+
+    '<div class="summary-card"><span>Jam Mengajar</span><strong>'+teaching+' JP</strong></div>'+
+    '<div class="summary-card"><span>Jadwal Piket</span><strong>'+piket+' Sesi</strong></div>'+
+    '<div class="summary-card"><span>Total Beban</span><strong>'+total+'</strong></div>';
+  $("guruTable").innerHTML=buildWeeklyTable(rows,"guru");
 }
 
-/* =========================================================
-   RENDER JADWAL PIKET
-   Menampilkan SEMUA kolom dan baris yang terbaca dari sheet.
-========================================================= */
-
+/* TAMPILKAN SELURUH DATA PIKET */
 function renderPiketTable() {
-  const headers = state.piketHeaders;
-  const data = state.piket;
-
-  $("piketPrintTotal").textContent = "Data piket: " + data.length + " baris";
-
-  if (!headers.length) {
-    $("piketTable").innerHTML =
-      '<div class="empty">Sheet Jadwal Piket ditemukan, tetapi tidak memiliki header atau data yang dapat ditampilkan.</div>';
+  const headers=state.piketHeaders,data=state.piket;
+  $("piketPrintTotal").textContent="Data piket: "+data.length+" baris";
+  if(!headers.length) {
+    $("piketTable").innerHTML='<div class="empty">Sheet Jadwal Piket ditemukan, tetapi tidak memiliki header atau data.</div>';
     return;
   }
+  let html="<table><thead><tr>";
+  headers.forEach(header=>html+="<th>"+escapeHTML(header)+"</th>");
+  html+="</tr></thead><tbody>";
 
-  let html = "<table><thead><tr>";
-
-  headers.forEach(header => {
-    html += `<th>${escapeHTML(header)}</th>`;
-  });
-
-  html += "</tr></thead><tbody>";
-
-  if (!data.length) {
-    html += `<tr><td colspan="${headers.length}">Sheet Jadwal Piket terbaca, tetapi belum ada baris data.</td></tr>`;
+  if(!data.length) {
+    html+='<tr><td colspan="'+headers.length+'">Sheet Jadwal Piket terbaca, tetapi belum ada baris data.</td></tr>';
   } else {
-    data.forEach(row => {
-      html += "<tr>";
-
-      headers.forEach(header => {
-        const value = clean(row[header]);
-        html += `<td>${value ? escapeHTML(value).replace(/\n/g, "<br>") : "—"}</td>`;
+    data.forEach(row=>{
+      html+="<tr>";
+      headers.forEach(header=>{
+        const value=clean(row[header]);
+        html+='<td>'+(value?escapeHTML(value).replace(/\n/g,"<br>"):"—")+'</td>';
       });
-
-      html += "</tr>";
+      html+="</tr>";
     });
   }
-
-  html += "</tbody></table>";
-  $("piketTable").innerHTML = html;
+  html+="</tbody></table>";
+  $("piketTable").innerHTML=html;
 }
 
-/* =========================================================
-   NAVIGASI ANTAR HALAMAN
-========================================================= */
-
+/* NAVIGASI */
 function showView(view) {
-  const views = ["kelas", "guru", "piket"];
-
-  if (!views.includes(view)) view = "kelas";
-
-  document.body.dataset.view = view;
-
-  $("kelasView").classList.toggle("hidden", view !== "kelas");
-  $("guruView").classList.toggle("hidden", view !== "guru");
-  $("piketView").classList.toggle("hidden", view !== "piket");
-
-  document.querySelectorAll("nav button").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.target === view + "View"
-    );
+  if(!["kelas","guru","piket"].includes(view)) view="kelas";
+  document.body.dataset.view=view;
+  $("kelasView").classList.toggle("hidden",view!=="kelas");
+  $("guruView").classList.toggle("hidden",view!=="guru");
+  $("piketView").classList.toggle("hidden",view!=="piket");
+  document.querySelectorAll("nav button").forEach(button=>{
+    button.classList.toggle("active",button.dataset.target===view+"View");
   });
 }
-
-/* =========================================================
-   CETAK DAN SIMPAN PDF
-========================================================= */
-
 function printCurrentView() {
-  // Browser akan membuka dialog cetak.
-  // Pilih printer untuk mencetak atau "Save as PDF" untuk menyimpan PDF.
   window.print();
 }
-
-/* =========================================================
-   MULAI
-========================================================= */
 
 loadWorkbook();
 </script>
