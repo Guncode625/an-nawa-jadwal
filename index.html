@@ -274,10 +274,9 @@
     // Fungsi otomatis membaca file Excel bernama "DATABASE" di repository GitHub
     async function muatDatabaseExcel() {
       try {
-        let response = await fetch('DATABASE');
+        let response = await fetch('DATABASE.xlsx');
         if (!response.ok) {
-          // Coba dengan ekstensi .xlsx jika file tanpa ekstensi gagal
-          response = await fetch('DATABASE.xlsx');
+          throw new Error('File DATABASE.xlsx tidak ditemukan di server.');
         }
         let arrayBuffer = await response.arrayBuffer();
         let workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -299,12 +298,11 @@
         document.getElementById('content').innerHTML = `
           <div class="content-card" style="text-align: center; color: #dc2626;">
             <h3>Gagal Memuat File DATABASE</h3>
-            <p>Pastikan file Excel dengan nama <b>DATABASE</b> sudah di-upload ke repository GitHub Anda.</p>
+            <p>Pastikan file Excel <b>DATABASE.xlsx</b> sudah benar-benar ada di direktori utama repository GitHub Anda.</p>
           </div>
         `;
       }
     }
-
     function clearNav() {
       document.getElementById('btnBeranda').classList.remove('active');
       document.getElementById('btnJadwalMenu').classList.remove('active');
