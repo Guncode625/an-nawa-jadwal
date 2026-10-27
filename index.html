@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <!-- Konfigurasi PWA untuk Install Aplikasi -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#075e43">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="An-Nawa">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sistem Jadwal Pelajaran | An-Nawa</title>
@@ -914,6 +920,14 @@ function printCurrentView() {
 }
 
 loadWorkbook();
+</script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(() => console.log('Service Worker Berhasil Terdaftar'))
+        .catch((err) => console.log('Gagal mendaftar Service Worker:', err));
+    });
+  }
 </script>
 </body>
 </html>
