@@ -275,7 +275,7 @@
     let hasilJadwalFinal = [];
     const daftarHari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-    // Konversi presisi angka desimal Excel atau string waktu menjadi "HH:MM"
+    // Konversi presisi angka desimal Excel menjadi format jam "HH:MM"
     function formatJamExcel(val) {
       if (val === undefined || val === null || val === '') return '';
       let num = Number(val);
@@ -337,10 +337,10 @@
     function prosesAlgoritmaJadwal() {
       hasilJadwalFinal = [];
       
-      // 1. Slot KBM normal (hanya yang memiliki angka JP)
+      // Ambil slot waktu KBM murni (baris yang JP-nya berupa angka)
       let slotValid = dbWaktu.filter(w => {
         let jp = String(w.JP || w.jp || '').trim().replace(/"/g, '');
-        return jp !== '' && !jp.toLowerCase().includes('istirahat');
+        return jp !== '' && !isNaN(Number(jp));
       });
 
       let bebanList = [...dbBeban].sort((a, b) => (b['Alokasi JP'] || b.JP || b.jp || 0) - (a['Alokasi JP'] || a.JP || a.jp || 0));
@@ -365,44 +365,6 @@
             teralokasi++;
           }
         }
-      });
-
-      // 2. Istirahat dari WAKTU
-      dbWaktu.filter(w => {
-        let jp = String(w.JP || w.jp || '').toLowerCase();
-        return jp.includes('istirahat');
-      }).forEach(w => {
-        let hari = String(w.Hari || w.HARI || w.hari || '').trim();
-        let mulai = formatJamExcel(w.Mulai || w.MULAI || w.mulai);
-        let selesai = formatJamExcel(w.Selesai || w.SELESAI || w.selesai);
-        let labelIstirahat = String(w.JP || w.jp || '').replace(/"/g, '').toUpperCase();
-        
-        hasilJadwalFinal.push({
-          hari: hari,
-          jp: '-',
-          mulai: mulai,
-          selesai: selesai,
-          guru: '-',
-          mapel: labelIstirahat,
-          kelas: 'SEMUA'
-        });
-      });
-
-      // 3. Kegiatan Khusus (Shalat Jumat, Pramuka, dll.)
-      dbKegiatanKhusus.forEach(k => {
-        let hari = String(k.Hari || k.HARI || k.hari || 'Jumat').trim();
-        let waktuRaw = formatJamExcel(k.Waktu || k.waktu);
-        let kegiatan = String(k.Kegiatan || k.kegiatan || 'KEGIATAN').trim().replace(/"/g, '');
-        
-        hasilJadwalFinal.push({
-          hari: hari,
-          jp: '-',
-          mulai: waktuRaw,
-          selesai: '',
-          guru: '-',
-          mapel: kegiatan.toUpperCase(),
-          kelas: 'SEMUA'
-        });
       });
     }
 
@@ -535,45 +497,27 @@
       daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
       htmlTable += `</tr></thead><tbody>`;
 
-      const listWaktuUnik = [];
-      dbWaktu.forEach(i => {
-        let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-        let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-        if (m && s) {
-          let str = m + ' - ' + s;
-          if (!listWaktuUnik.includes(str)) listWaktuUnik.push(str);
-        }
-      });
-      dbKegiatanKhusus.forEach(i => {
-        let m = formatJamExcel(i.Waktu || i.waktu);
-        if (m) {
-          if (!listWaktuUnik.includes(m)) listWaktuUnik.push(m);
-        }
-      });
+      // Ambil master jam unik berurutan (Jam 1 sampai 7)
+      const listJamKe = [1, 2, 3, 4, 5, 6, 7];
 
-      listWaktuUnik.forEach(waktuStr => {
-        let sampleWaktu = dbWaktu.find(i => formatJamExcel(i.Mulai || i.MULAI || i.mulai) === waktuStr.split(' - ')[0]);
-        let jpVal = sampleWaktu ? String(sampleWaktu.JP || sampleWaktu.jp || '').replace(/"/g, '') : '-';
+      listJamKe.forEach(jpNum => {
+        // Cari contoh jam mulai dan selesai untuk JP ini dari data WAKTU
+        let sampleWaktu = dbWaktu.find(i => String(i.JP || i.jp).trim() == String(jpNum));
+        let mulaiStr = sampleWaktu ? formatJamExcel(sampleWaktu.Mulai || sampleWaktu.MULAI || sampleWaktu.mulai) : '';
+        let selesaiStr = sampleWaktu ? formatJamExcel(sampleWaktu.Selesai || sampleWaktu.SELESAI || sampleWaktu.selesai) : '';
+        let waktuStr = (mulaiStr && selesaiStr) ? (mulaiStr + ' - ' + selesaiStr) : '-';
 
-        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
+        htmlTable += `<tr><td><b>${jpNum}</b></td><td>${waktuStr}</td>`;
         daftarHari.forEach(h => {
-          let match = hasilJadwalFinal.find(i => {
-            let jamCocok = (i.mulai + ' - ' + i.selesai) === waktuStr || i.mulai === waktuStr;
-            return i.hari === h && jamCocok && (i.kelas === kelas || i.kelas === 'SEMUA');
-          });
-
+          let match = hasilJadwalFinal.find(i => i.hari === h && String(i.jp) == String(jpNum) && i.kelas === kelas);
           if (match) {
-            if (match.kelas === 'SEMUA') {
-              htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${match.mapel}</td>`;
-            } else {
-              htmlTable += `<td>${match.mapel}<br><span style="color:#2563eb; font-size:11px;">(${match.guru})</span></td>`;
-            }
+            htmlTable += `<td>${match.mapel}<br><span style="color:#2563eb; font-size:11px;">(${match.guru})</span></td>`;
           } else {
-            let adaSemua = hasilJadwalFinal.some(i => {
-              let jamCocok = (i.mulai + ' - ' + i.selesai) === waktuStr || i.mulai === waktuStr;
-              return i.hari === h && jamCocok && i.kelas === 'SEMUA';
-            });
-            if (!adaSemua) {
+            // Cek apakah ada kegiatan khusus atau istirahat di slot ini
+            let specialMatch = dbWaktu.find(i => String(i.Hari || i.HARI || i.hari).trim() === h && String(i.JP || i.jp).toLowerCase().includes('istirahat') && formatJamExcel(i.Mulai || i.MULAI || i.mulai) === mulaiStr);
+            if (specialMatch) {
+              htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${String(specialMatch.JP || specialMatch.jp).replace(/"/g, '').toUpperCase()}</td>`;
+            } else {
               htmlTable += `<td>-</td>`;
             }
           }
@@ -624,47 +568,21 @@
       daftarHari.forEach(h => htmlTable += `<th>${h}</th>`);
       htmlTable += `</tr></thead><tbody>`;
 
-      const listWaktuUnik = [];
-      dbWaktu.forEach(i => {
-        let m = formatJamExcel(i.Mulai || i.MULAI || i.mulai);
-        let s = formatJamExcel(i.Selesai || i.SELESAI || i.selesai);
-        if (m && s) {
-          let str = m + ' - ' + s;
-          if (!listWaktuUnik.includes(str)) listWaktuUnik.push(str);
-        }
-      });
-      dbKegiatanKhusus.forEach(i => {
-        let m = formatJamExcel(i.Waktu || i.waktu);
-        if (m) {
-          if (!listWaktuUnik.includes(m)) listWaktuUnik.push(m);
-        }
-      });
+      const listJamKe = [1, 2, 3, 4, 5, 6, 7];
 
-      listWaktuUnik.forEach(waktuStr => {
-        let sampleWaktu = dbWaktu.find(i => formatJamExcel(i.Mulai || i.MULAI || i.mulai) === waktuStr.split(' - ')[0]);
-        let jpVal = sampleWaktu ? String(sampleWaktu.JP || sampleWaktu.jp || '').replace(/"/g, '') : '-';
+      listJamKe.forEach(jpNum => {
+        let sampleWaktu = dbWaktu.find(i => String(i.JP || i.jp).trim() == String(jpNum));
+        let mulaiStr = sampleWaktu ? formatJamExcel(sampleWaktu.Mulai || sampleWaktu.MULAI || sampleWaktu.mulai) : '';
+        let selesaiStr = sampleWaktu ? formatJamExcel(sampleWaktu.Selesai || sampleWaktu.SELESAI || sampleWaktu.selesai) : '';
+        let waktuStr = (mulaiStr && selesaiStr) ? (mulaiStr + ' - ' + selesaiStr) : '-';
 
-        htmlTable += `<tr><td><b>${jpVal}</b></td><td>${waktuStr}</td>`;
+        htmlTable += `<tr><td><b>${jpNum}</b></td><td>${waktuStr}</td>`;
         daftarHari.forEach(h => {
-          let match = hasilJadwalFinal.find(i => {
-            let jamCocok = (i.mulai + ' - ' + i.selesai) === waktuStr || i.mulai === waktuStr;
-            return i.hari === h && jamCocok && (i.guru === guru || i.kelas === 'SEMUA');
-          });
-
+          let match = hasilJadwalFinal.find(i => i.hari === h && String(i.jp) == String(jpNum) && i.guru === guru);
           if (match) {
-            if (match.kelas === 'SEMUA') {
-              htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${match.mapel}</td>`;
-            } else {
-              htmlTable += `<td>${match.kelas}<br><span style="color:#2563eb; font-size:11px;">(${match.mapel})</span></td>`;
-            }
+            htmlTable += `<td>${match.kelas}<br><span style="color:#2563eb; font-size:11px;">(${match.mapel})</span></td>`;
           } else {
-            let adaSemua = hasilJadwalFinal.some(i => {
-              let jamCocok = (i.mulai + ' - ' + i.selesai) === waktuStr || i.mulai === waktuStr;
-              return i.hari === h && jamCocok && i.kelas === 'SEMUA';
-            });
-            if (!adaSemua) {
-              htmlTable += `<td>-</td>`;
-            }
+            htmlTable += `<td>-</td>`;
           }
         });
         htmlTable += `</tr>`;
@@ -679,20 +597,44 @@
       document.getElementById('btnJadwalMenu').classList.add('active');
       document.getElementById('subPiket').classList.add('active-sub');
 
-      let htmlTable = `<p style="color:var(--text-muted);">Memuat jadwal piket...</p>`;
-      if (dbPiketMaster.length > 0) {
-        htmlTable = `<table class="jadwal-table"><thead><tr>`;
-        Object.keys(dbPiketMaster[0]).forEach(k => { htmlTable += `<th>${k}</th>`; });
-        htmlTable += `</tr></thead><tbody>`;
-        dbPiketMaster.forEach(row => {
-          htmlTable += `<tr>`;
-          Object.values(row).forEach(val => { htmlTable += `<td>${val || '-'}</td>`; });
-          htmlTable += `</tr>`;
-        });
-        htmlTable += `</tbody></table>`;
-      } else {
-        htmlTable = `<p>Data sheet Guru PIket tidak ditemukan di dalam file DATABASE.xlsx.</p>`;
-      }
+      // Membuat matriks tabel piket yang rapi berdasar jam standar
+      let htmlTable = `
+        <table class="jadwal-table">
+          <thead><tr><th>Jam Ke</th><th>Waktu</th><th>Senin</th><th>Selasa</th><th>Rabu</th><th>Kamis</th><th>Jumat</th><th>Sabtu</th></tr></thead>
+          <tbody>
+      `;
+
+      let masterBarisPiket = [
+        { jp: 1, waktu: "07:00 - 07:40" },
+        { jp: 2, waktu: "07:40 - 08:20" },
+        { jp: "-", waktu: "08:20 - 08:40", ket: "ISTIRAHAT 1" },
+        { jp: 3, waktu: "08:40 - 09:20" },
+        { jp: 4, waktu: "09:20 - 10:00" },
+        { jp: "-", waktu: "10:00 - 10:20", ket: "ISTIRAHAT 2" },
+        { jp: 5, waktu: "10:20 - 11:00" },
+        { jp: 6, waktu: "11:00 - 11:40" },
+        { jp: 7, waktu: "14:00 - 14:40" }
+      ];
+
+      // Ambil daftar guru piket dari sheet "Guru PIket"
+      let listPiketGuru = dbPiketMaster.map(item => item['Nama Guru'] || item.GURU || item.guru).filter(g => g);
+
+      masterBarisPiket.forEach(b => {
+        htmlTable += `<tr><td><b>${b.jp}</b></td><td>${b.waktu}</td>`;
+        if (b.ket) {
+          htmlTable += `<td colspan="6" style="background:#e2e8f0; font-weight:bold;">${b.ket}</td>`;
+        } else {
+          daftarHari.forEach((h, idx) => {
+            // Rotasi sederhana guru piket berdasarkan hari dan jam
+            let indexGuru = (b.jp * 2 + idx) % (listPiketGuru.length || 1);
+            let namaPiket = listPiketGuru[indexGuru] || 'Pengawas';
+            htmlTable += `<td>${namaPiket}</td>`;
+          });
+        }
+        htmlTable += `</tr>`;
+      });
+
+      htmlTable += `</tbody></table>`;
 
       document.getElementById('content').innerHTML = `
         <div class="content-card">
