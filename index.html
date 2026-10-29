@@ -1207,15 +1207,14 @@ function tutupMenuDropdown() {
     }
 }
 
-// Tutup menu otomatis jika pengguna mengklik di luar area tombol Home
+// Tutup menu otomatis jika pengguna mengklik di luar area tombol Menu & Dropdown
 window.addEventListener('click', function(e) {
-    const container = document.querySelector('.header-inner');
+    const dropdownWrap = document.querySelector('header .no-print');
     const menu = document.getElementById('dropdownMenuContent');
     
-    // Jika dropdown sedang terbuka dan area yang diklik berada di luar wadah header/menu
+    // Jika dropdown sedang terbuka dan area yang diklik berada di luar wadah tombol/menu dropdown
     if (menu && menu.style.display === 'block') {
-        // Cek apakah klik terjadi di dalam area tombol/menu atau tidak
-        if (!container.contains(e.target)) {
+        if (dropdownWrap && !dropdownWrap.contains(e.target)) {
             menu.style.display = 'none';
         }
     }
