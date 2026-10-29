@@ -1,6 +1,6 @@
 {
   "name": "Jadwal An-Nawa",
-  "short_name": "An-Nawa",
+  "short_name": "Jadwal An-Nawa",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
