@@ -982,6 +982,7 @@ function bukaModalIzin() {
     if (inputSandi === sandiBenar) {
         // Jika sandi benar, buka modal form
         const modal = document.getElementById('modalGuruIzin');
+        modal.classList.remove('hidden');
         modal.style.display = 'flex';
         document.getElementById('tglIzin').valueAsDate = new Date();
     } else {
@@ -989,9 +990,10 @@ function bukaModalIzin() {
     }
 }
 function tutupModalIzin() {
-    document.getElementById('modalGuruIzin').style.display = 'none';
+    const modal = document.getElementById('modalGuruIzin');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
 }
-
 function simpanDataIzin(e) {
     e.preventDefault();
     const dataBaru = {
