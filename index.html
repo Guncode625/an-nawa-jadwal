@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="An-Nawa">
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sistem Jadwal Pelajaran | An-Nawa</title>
@@ -244,7 +245,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     display: flex !important;
     page-break-inside: avoid !important;
   }
-}
   table.schedule-table {
     width: 100% !important;
     height: 100% !important;
@@ -277,7 +277,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     vertical-align: middle !important;
     font-size: 10px !important;
   }
-  /* Sembunyikan kolom Aksi saat diprint */
+  /* Sembunyikan kolom Aksi KHUSUS saat dicetak */
   #izinView th:last-child, #izinView td:last-child {
     display: none !important;
   }
@@ -298,7 +298,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     page-break-inside: avoid !important;
   }
 }
-
 @media (max-width:650px) {
   .header-inner { align-items:flex-start;padding:15px;gap:12px; }
   .logo { width:58px;height:58px; }
