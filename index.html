@@ -195,7 +195,8 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   body[data-view="beranda"] #berandaView,
   body[data-view="kelas"] #kelasView,
   body[data-view="guru"] #guruView,
-  body[data-view="piket"] #piketView {
+  body[data-view="piket"] #piketView,
+  body[data-view="izin"] #izinView {
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -219,21 +220,15 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   }
   .print-header h2 {
     display: block !important;
-    margin: 2px 0 6px !important;
+    margin: 2px 0 2px !important;
     font-size: 13px !important;
     line-height: 1.1 !important;
   }
-  .print-meta {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    margin: 0 0 8px !important;
-    padding: 4px 0 !important;
-    border-top: 1px solid #222 !important;
-    border-bottom: 1px solid #222 !important;
-    font-size: 9px !important;
-    font-weight: 700 !important;
+  .print-header h3 {
+    display: block !important;
+    margin: 2px 0 6px !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
   }
   .table-wrap {
     display: flex !important;
@@ -261,7 +256,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     vertical-align: middle !important;
     font-size: 8px !important;
   }
-  #piketView table {
+  #piketView table, #izinView table {
     width: 100% !important;
     height: auto !important;
     flex: 0 1 auto !important;
@@ -269,54 +264,20 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     table-layout: auto !important;
     border-collapse: collapse !important;
   }
-  #piketView th, #piketView td {
+  #piketView th, #piketView td, #izinView th, #izinView td {
     border: 1px solid #333 !important;
-    padding: 10px 8px !important;
+    padding: 8px !important;
     color: #111 !important;
     text-align: center !important;
     vertical-align: middle !important;
     font-size: 10px !important;
   }
-  #izinView table {
-    width: 100% !important;
-    border-collapse: collapse !important;
+  /* Sembunyikan kolom Aksi saat diprint */
+  #izinView th:last-child, #izinView td:last-child {
+    display: none !important;
   }
-  #izinView th, #izinView td {
-    border: 1px solid #333 !important;
-    padding: 8px !important;
-    font-size: 10px !important;
-    color: #111 !important;
-    text-align: center !important;
-  }
-}
   thead { display: table-header-group !important; }
-  thead th { background: #dcece0 !important; color: #111 !important; font-size: 14px !important; }
-  .schedule-table th:first-child, .schedule-table td:first-child { width: 6% !important; }
-  .schedule-table th:nth-child(2), .schedule-table td:nth-child(2) { width: 12% !important; }
-  .schedule-cell { white-space: normal !important; }
-  .schedule-cell strong {
-    display: block !important;
-    margin: 0 !important;
-    color: #111 !important;
-    font-size: 11px !important;
-  }
-  .schedule-cell small {
-    display: block !important;
-    margin: 1px 0 0 !important;
-    color: #333 !important;
-    font-size: 8.5px !important;
-  }
-  .schedule-table hr {
-    margin: 2px 0 !important;
-    border: 0 !important;
-    border-top: 1px solid #888 !important;
-  }
-  .break-row td, .special-row td {
-    background: #eae3d0 !important;
-    color: #111 !important;
-    font-weight: 700 !important;
-    padding: 4px !important;
-  }
+  thead th { background: #dcece0 !important; color: #111 !important; font-size: 12px !important; }
   .print-footer {
     display: block !important;
     width: 100% !important;
@@ -371,7 +332,9 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <h2>Ahlan wa Sahlan, Civitas Akademika ✨</h2>
     <p>Pusat informasi dan pengelolaan jadwal KBM RMI Pondok Pesantren Modern An-Nawa</p>
     <p><strong>Tahun Ajaran 2026-2027.</strong></p>
-        <div id="kotakPengumumanBeranda" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 5px solid #d97706; padding: 15px 18px; border-radius: 8px; margin: 20px 0; display: none;">
+    
+    <!-- Kotak Pengumuman Pesantren -->
+    <div id="kotakPengumumanBeranda" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 5px solid #d97706; padding: 15px 18px; border-radius: 8px; margin: 20px 0; display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #92400e; font-size: 16px;"><i class="fas fa-bullhorn"></i> PENGUMUMAN BAGIAN PENGAJARAN</h4>
         <span id="tanggalPengumuman" style="font-size: 11px; color: #b45309; font-weight: bold;"></span>
@@ -381,12 +344,12 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
 
     <div id="status" class="status" style="margin-top: 15px;">Memuat data jadwal dari file Excel...</div>
 
-    <!-- TOMBOL KELOLA PENGUMUMAN KHUSUS PENGAJARAN -->
+    <!-- Tombol Kelola Pengumuman Khusus Pengajaran -->
     <div class="no-print" style="margin-bottom: 20px;">
       <button class="btn secondary" onclick="bukaFormPengumuman()" style="font-size: 12px; padding: 8px 12px;">📢 Buat / Edit Pengumuman (Pengajaran)</button>
     </div>
 
-    <!-- KARTU PINTASAN MENU UTAMA (DASHBOARD) -->
+    <!-- Kartu Pintasan Menu Utama (Dashboard) -->
     <div class="dashboard-grid">
       <div class="dash-card" onclick="showView('kelas')">
         <i class="fas fa-school"></i>
@@ -476,6 +439,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <div id="piketTable" class="table-wrap"></div>
     <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
   </section>
+
   <!-- GURU IZIN / KOSONG VIEW -->
   <section id="izinView" class="panel hidden">
     <h2>Pencatatan Guru Izin / Berhalangan Hadir</h2>
@@ -483,15 +447,13 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     
     <div class="actions no-print">
       <button class="btn" onclick="bukaModalIzin()">+ Catat Guru Izin Baru</button>
-    </div>
-
       <button class="btn secondary" onclick="printCurrentView()">🖨️ Cetak Laporan Izin</button>
     </div>
 
     <!-- Header Khusus Print Laporan -->
     <div class="print-header">
       <h1>PONPES MODERN AN-NAWA</h1>
-      <h2>RAUDLOTUL MUA'LLIMINAL ISLAMIYYAH</h2>
+      <h2>RAUDLOTUL MU'ALLIMINAL ISLAMIYAH (RMI)</h2>
       <h3>REKAPITULASI KETIDAKHADIRAN GURU / IZIN</h3>
     </div>
 
@@ -499,17 +461,72 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <div id="tabelGuruIzinWrap" class="table-wrap" style="margin-top: 15px;">
       <!-- Tabel akan dirender otomatis via JavaScript -->
     </div>
-    
+
     <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
-  </section>
-    <!-- Tabel Rekap Guru Izin -->
-    <div id="tabelGuruIzinWrap" class="table-wrap" style="margin-top: 15px;">
-      <!-- Tabel akan dirender otomatis via JavaScript -->
-    </div>
   </section>
 </main>
 
 <footer>2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</footer>
+
+<!-- MODAL FORM INPUT GURU IZIN -->
+<div id="modalGuruIzin" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6" style="background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <h3 style="color: var(--green); margin-top: 0; margin-bottom: 15px;">Formulir Guru Izin / Berhalangan</h3>
+        
+        <form id="formIzin" onsubmit="simpanDataIzin(event)" style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Tanggal</label>
+                <input type="date" id="tglIzin" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Nama Guru yang Izin</label>
+                <input type="text" id="namaAsal" placeholder="Contoh: Ustadz Ram Haryo" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Jam Ke- / Waktu</label>
+                <input type="text" id="jamIzin" placeholder="Contoh: Jam ke 3-4" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Kelas</label>
+                <input type="text" id="kelasIzin" placeholder="Contoh: VII A" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Keterangan / Alasan Izin</label>
+                <input type="text" id="keteranganIzin" placeholder="Contoh: Sakit / Urusan Keluarga" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Guru Pengganti / Piket (Opsional)</label>
+                <input type="text" id="namaPengganti" placeholder="Contoh: Ustadz Zaid" style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                <button type="button" onclick="tutupModalIzin()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
+                <button type="submit" class="btn">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL FORM INPUT PENGUMUMAN -->
+<div id="modalPengumuman" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 15px;">
+    <div style="background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <h3 style="color: var(--green); margin-top: 0; margin-bottom: 10px;">Kelola Pengumuman Pesantren</h3>
+        <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Pengumuman yang disimpan akan langsung tampil di halaman Beranda utama.</p>
+        
+        <form onsubmit="simpanPengumuman(event)" style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Isi Pengumuman / Pesan</label>
+                <textarea id="teksPengumumanInput" rows="5" placeholder="Tulis pengumuman penting di sini..." required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px; font: inherit;"></textarea>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px;">
+                <button type="button" onclick="tutupModalPengumuman()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
+                <button type="button" onclick="hapusPengumuman()" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 8px 12px; border-radius: 8px; font-weight: bold;">Hapus Pengumuman</button>
+                <button type="submit" class="btn">Terbitkan</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 "use strict";
@@ -971,61 +988,14 @@ function printCurrentView() {
   window.print();
 }
 
-loadWorkbook();
-</script>
-  <!-- MODAL FORM INPUT GURU IZIN -->
-<div id="modalGuruIzin" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6" style="background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-        <h3 style="color: var(--green); margin-top: 0; margin-bottom: 15px;">Formulir Guru Izin / Berhalangan</h3>
-        
-        <form id="formIzin" onsubmit="simpanDataIzin(event)" style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Tanggal</label>
-                <input type="date" id="tglIzin" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Nama Guru yang Izin</label>
-                <input type="text" id="namaAsal" placeholder="Contoh: Ustadz Ram Haryo" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Jam Ke- / Waktu</label>
-                <input type="text" id="jamIzin" placeholder="Contoh: Jam ke 3-4" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Kelas</label>
-                <input type="text" id="kelasIzin" placeholder="Contoh: VII A" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Keterangan / Alasan Izin</label>
-                <input type="text" id="keteranganIzin" placeholder="Contoh: Sakit / Urusan Keluarga" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Guru Pengganti / Piket (Opsional)</label>
-                <input type="text" id="namaPengganti" placeholder="Contoh: Ustadz Zaid" style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
-            </div>
-            
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
-                <button type="button" onclick="tutupModalIzin()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
-                <button type="submit" class="btn">Simpan Data</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-// Fungsi Modal & Penyimpanan Guru Izin
+/* FUNGSI GURU IZIN */
 function bukaModalIzin() {
-    // Tentukan kata sandi bagian pengajaran di sini (silakan ubah sesuai keinginan)
     const sandiBenar = "bapeng2026"; 
-    
     const inputSandi = prompt("Masukkan kata sandi khusus Bagian Pengajaran:");
     
-    if (inputSandi === null) {
-        return; // Pengguna membatalkan
-    }
+    if (inputSandi === null) return;
     
     if (inputSandi === sandiBenar) {
-        // Jika sandi benar, buka modal form
         const modal = document.getElementById('modalGuruIzin');
         modal.classList.remove('hidden');
         modal.style.display = 'flex';
@@ -1091,7 +1061,7 @@ function renderTabelGuruIzin() {
 }
 
 function hapusDataIzin(index) {
-    const sandiBenar = "bapengun2026";
+    const sandiBenar = "bapeng2026";
     const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran untuk menghapus data:");
     
     if (inputSandi !== sandiBenar) {
@@ -1108,45 +1078,17 @@ function hapusDataIzin(index) {
         renderTabelGuruIzin();
     }
 }
-// Jalankan render tabel saat halaman dimuat
-document.addEventListener("DOMContentLoaded", () => {
-    renderTabelGuruIzin();
-});
-  
-  <!-- MODAL FORM INPUT PENGUMUMAN -->
-<div id="modalPengumuman" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 15px;">
-    <div style="background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
-        <h3 style="color: var(--green); margin-top: 0; margin-bottom: 10px;">Kelola Pengumuman Pesantren</h3>
-        <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Pengumuman yang disimpan akan langsung tampil di halaman Beranda utama.</p>
-        
-        <form onsubmit="simpanPengumuman(event)" style="display: flex; flex-direction: column; gap: 12px;">
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Isi Pengumuman / Pesan</label>
-                <textarea id="teksPengumumanInput" rows="5" placeholder="Tulis pengumuman penting di sini..." required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px; font: inherit;"></textarea>
-            </div>
-            
-            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px;">
-                <button type="button" onclick="tutupModalPengumuman()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
-                <button type="button" onclick="hapusPengumuman()" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 8px 12px; border-radius: 8px; font-weight: bold;">Hapus Pengumuman</button>
-                <button type="submit" class="btn">Terbitkan</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<script>
-// Fungsi Pengumuman dengan Pengaman Sandi Bagian Pengajaran
+/* FUNGSI PENGUMUMAN */
 function bukaFormPengumuman() {
-    const sandiBenar = "bapeng2026"; // Kata sandi khusus pengajaran
+    const sandiBenar = "bapeng2026";
     const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran:");
     
     if (inputSandi === null) return;
     
     if (inputSandi === sandiBenar) {
-        // Ambil data pengumuman yang sudah ada ke dalam textarea modal
         const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || '{}');
         document.getElementById('teksPengumumanInput').value = saved.pesan || '';
-        
         const modal = document.getElementById('modalPengumuman');
         modal.style.display = 'flex';
     } else {
@@ -1206,11 +1148,12 @@ function muatPengumumanBeranda() {
     }
 }
 
-// Muat otomatis saat halaman dibuka
+// Jalankan saat halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {
+    loadWorkbook();
+    renderTabelGuruIzin();
     muatPengumumanBeranda();
 });
-</script>
 </script>
 
 <!-- Skrip Registrasi Service Worker PWA -->
