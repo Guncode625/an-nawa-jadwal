@@ -350,6 +350,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   <button type="button" data-target="kelasView" onclick="showView('kelas')">Jadwal Per Kelas</button>
   <button type="button" data-target="guruView" onclick="showView('guru')">Jadwal Per Guru</button>
   <button type="button" data-target="piketView" onclick="showView('piket')">Jadwal Piket</button>
+  <button type="button" data-target="izinView" onclick="showView('izin')">⚠️ Guru Izin / Kosong</button>
 </nav>
 
 <main>
@@ -450,6 +451,20 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     </div>
     <div id="piketTable" class="table-wrap"></div>
     <div class="print-footer">2026 Sistem Jadwal Pelajaran PONPES MODERN AN-NAWA. All rights reserved.</div>
+  </section>
+  <!-- GURU IZIN / KOSONG VIEW -->
+  <section id="izinView" class="panel hidden">
+    <h2>Pencatatan Guru Izin / Berhalangan Hadir</h2>
+    <p style="color: var(--muted); font-size: 13.5px; margin-bottom: 15px;">Gunakan menu ini untuk mencatat guru yang izin agar dapat terpantau dan dicarikan pengganti/piket.</p>
+    
+    <div class="actions no-print">
+      <button class="btn" onclick="bukaModalIzin()">+ Catat Guru Izin Baru</button>
+    </div>
+
+    <!-- Tabel Rekap Guru Izin -->
+    <div id="tabelGuruIzinWrap" class="table-wrap" style="margin-top: 15px;">
+      <!-- Tabel akan dirender otomatis via JavaScript -->
+    </div>
   </section>
 </main>
 
@@ -902,6 +917,7 @@ function showView(view) {
   $("kelasView").classList.toggle("hidden", view!=="kelas");
   $("guruView").classList.toggle("hidden", view!=="guru");
   $("piketView").classList.toggle("hidden", view!=="piket");
+  $("izinView").classList.toggle("hidden", view!=="izin");
   
   document.querySelectorAll("nav button").forEach(button=>{
     button.classList.toggle("active", button.dataset.target === view+"View");
@@ -915,6 +931,138 @@ function printCurrentView() {
 }
 
 loadWorkbook();
+</script>
+  <!-- MODAL FORM INPUT GURU IZIN -->
+<div id="modalGuruIzin" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6" style="background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 450px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+        <h3 style="color: var(--green); margin-top: 0; margin-bottom: 15px;">Formulir Guru Izin / Berhalangan</h3>
+        
+        <form id="formIzin" onsubmit="simpanDataIzin(event)" style="display: flex; flex-direction: column; gap: 12px;">
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Tanggal</label>
+                <input type="date" id="tglIzin" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Nama Guru yang Izin</label>
+                <input type="text" id="namaAsal" placeholder="Contoh: Ustadz Ahmad" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Jam Ke- / Waktu</label>
+                <input type="text" id="jamIzin" placeholder="Contoh: Jam ke 3-4" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Kelas</label>
+                <input type="text" id="kelasIzin" placeholder="Contoh: VII A" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Guru Pengganti / Piket (Opsional)</label>
+                <input type="text" id="namaPengganti" placeholder="Contoh: Ustadz Zaid" style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
+                <button type="button" onclick="tutupModalIzin()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
+                <button type="submit" class="btn">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Fungsi Modal & Penyimpanan Guru Izin
+function bukaModalIzin() {
+    // Tentukan kata sandi bagian pengajaran di sini (silakan ubah sesuai keinginan)
+    const sandiBenar = "bapeng2026"; 
+    
+    const inputSandi = prompt("Masukkan kata sandi khusus Bagian Pengajaran:");
+    
+    if (inputSandi === null) {
+        return; // Pengguna membatalkan
+    }
+    
+    if (inputSandi === sandiBenar) {
+        // Jika sandi benar, buka modal form
+        const modal = document.getElementById('modalGuruIzin');
+        modal.style.display = 'flex';
+        document.getElementById('tglIzin').valueAsDate = new Date();
+    } else {
+        alert("Kata sandi salah! Anda tidak memiliki akses untuk menambah/mengubah data izin guru.");
+    }
+}
+function tutupModalIzin() {
+    document.getElementById('modalGuruIzin').style.display = 'none';
+}
+
+function simpanDataIzin(e) {
+    e.preventDefault();
+    const dataBaru = {
+        tanggal: document.getElementById('tglIzin').value,
+        guru: document.getElementById('namaAsal').value,
+        jam: document.getElementById('jamIzin').value,
+        kelas: document.getElementById('kelasIzin').value,
+        pengganti: document.getElementById('namaPengganti').value || 'Belum ada'
+    };
+
+    let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
+    listIzin.push(dataBaru);
+    localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
+
+    alert('Data guru izin berhasil disimpan!');
+    tutupModalIzin();
+    document.getElementById('formIzin').reset();
+    renderTabelGuruIzin();
+}
+
+function renderTabelGuruIzin() {
+    const wrap = document.getElementById('tabelGuruIzinWrap');
+    if (!wrap) return;
+    
+    let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
+    if (listIzin.length === 0) {
+        wrap.innerHTML = '<div class="empty">Belum ada data guru izin yang tercatat hari ini.</div>';
+        return;
+    }
+
+    let html = `<table><thead><tr>
+        <th>Tanggal</th><th>Nama Guru</th><th>Jam Ke</th><th>Kelas</th><th>Guru Pengganti / Piket</th><th>Aksi</th>
+    </tr></thead><tbody>`;
+
+    listIzin.forEach((item, index) => {
+        html += `<tr>
+            <td>${escapeHTML(item.tanggal)}</td>
+            <td><strong>${escapeHTML(item.guru)}</strong></td>
+            <td>${escapeHTML(item.jam)}</td>
+            <td>${escapeHTML(item.kelas)}</td>
+            <td>${escapeHTML(item.pengganti)}</td>
+            <td><button onclick="hapusDataIzin(${index})" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; font-size:11px;">Hapus</button></td>
+        </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    wrap.innerHTML = html;
+}
+
+function hapusDataIzin(index) {
+    const sandiBenar = "bapeng2026";
+    const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran untuk menghapus data:");
+    
+    if (inputSandi !== sandiBenar) {
+        if (inputSandi !== null) {
+            alert("Kata sandi salah! Penghapusan dibatalkan.");
+        }
+        return;
+    }
+
+    if (confirm('Yakin ingin menghapus catatan guru izin ini?')) {
+        let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
+        listIzin.splice(index, 1);
+        localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
+        renderTabelGuruIzin();
+    }
+}
+// Jalankan render tabel saat halaman dimuat
+document.addEventListener("DOMContentLoaded", () => {
+    renderTabelGuruIzin();
+});
 </script>
 
 <!-- Skrip Registrasi Service Worker PWA -->
