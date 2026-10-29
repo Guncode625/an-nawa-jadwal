@@ -394,6 +394,9 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   <!-- KELAS VIEW -->
   <section id="kelasView" class="panel hidden">
     <h2>Jadwal Pelajaran Per Kelas</h2>
+    <div class="no-print" style="margin-bottom: 15px;">
+      <button class="btn secondary" onclick="showView('beranda')" style="font-size: 12px; padding: 6px 12px;">← Kembali</button>
+    </div>
     <div class="controls no-print">
       <div class="control-group">
         <label for="kelasSelect">Pilih Kelas</label>
@@ -420,6 +423,9 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   <!-- GURU VIEW -->
   <section id="guruView" class="panel hidden">
     <h2>Jadwal Pelajaran Per Guru</h2>
+    <div class="no-print" style="margin-bottom: 15px;">
+      <button class="btn secondary" onclick="showView('beranda')" style="font-size: 12px; padding: 6px 12px;">← Kembali</button>
+    </div>
     <div class="controls no-print">
       <div class="control-group">
         <label for="guruSelect">Pilih Guru</label>
@@ -446,6 +452,9 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   <!-- PIKET VIEW -->
   <section id="piketView" class="panel hidden">
     <h2>Jadwal Piket</h2>
+    <div class="no-print" style="margin-bottom: 15px;">
+      <button class="btn secondary" onclick="showView('beranda')" style="font-size: 12px; padding: 6px 12px;">← Kembali</button>
+    </div>
     <div class="actions no-print">
       <button class="btn" onclick="printCurrentView()">Cetak Jadwal Piket</button>
       <button class="btn secondary" onclick="printCurrentView()">Simpan PDF</button>
@@ -465,6 +474,9 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   <!-- GURU IZIN / KOSONG VIEW -->
   <section id="izinView" class="panel hidden">
     <h2>Pencatatan Guru Izin / Berhalangan Hadir</h2>
+    <div class="no-print" style="margin-bottom: 15px;">
+      <button class="btn secondary" onclick="showView('beranda')" style="font-size: 12px; padding: 6px 12px;">← Kembali</button>
+    </div>
     <p class="no-print" style="color: var(--muted); font-size: 11px; margin-bottom: 15px;">Gunakan menu ini untuk mencatat guru yang izin agar dapat terpantau dan dicarikan pengganti/piket.</p>
     
     <div class="actions no-print">
