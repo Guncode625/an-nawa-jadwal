@@ -1209,10 +1209,15 @@ function tutupMenuDropdown() {
 
 // Tutup menu otomatis jika pengguna mengklik di luar area tombol Home
 window.addEventListener('click', function(e) {
-    const container = document.querySelector('nav div');
+    const container = document.querySelector('.header-inner');
     const menu = document.getElementById('dropdownMenuContent');
-    if (container && menu && !container.contains(e.target)) {
-        menu.style.display = 'none';
+    
+    // Jika dropdown sedang terbuka dan area yang diklik berada di luar wadah header/menu
+    if (menu && menu.style.display === 'block') {
+        // Cek apakah klik terjadi di dalam area tombol/menu atau tidak
+        if (!container.contains(e.target)) {
+            menu.style.display = 'none';
+        }
     }
 });
 </script>
