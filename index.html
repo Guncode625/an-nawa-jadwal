@@ -720,8 +720,7 @@ async function loadWorkbook() {
     renderClassSchedule();
     renderTeacherSchedule();
 
-    setStatus("Data berhasil dimuat. Jadwal pelajaran: "+state.jadwal.length+
-      " baris; Jadwal Piket: "+state.piket.length+" baris. Sheet piket: "+piketSheetName+".","success");
+    setStatus("Bukan hanya papan tulis, spidol, dan modul pembelajaran; wujud seorang guru adalah media pengajaran (wasailul idhoh) yang berjalan. Karena pada hakikatnya, apa pun yang dilihat, didengar, dan dirasakan oleh para santri di sekitarnya adalah proses pendidikan yang utuh.");
   } catch(error) {
     console.error("Gagal memuat workbook:",error);
     setStatus("Gagal memuat data: "+error.message,"error");
