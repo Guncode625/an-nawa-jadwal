@@ -322,12 +322,32 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   </div>
 </header>
 
-<nav class="no-print">
-  <button type="button" class="active" data-target="berandaView" onclick="showView('beranda')">Beranda</button>
-  <button type="button" data-target="kelasView" onclick="showView('kelas')">Jadwal Per Kelas</button>
-  <button type="button" data-target="guruView" onclick="showView('guru')">Jadwal Per Guru</button>
-  <button type="button" data-target="piketView" onclick="showView('piket')">Jadwal Piket</button>
-  <button type="button" data-target="izinView" onclick="showView('izin')">⚠️ Guru Izin / Kosong</button>
+<nav class="no-print" style="justify-content: flex-start; padding: 10px 20px; background: white; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border);">
+  <div style="position: relative; display: inline-block;">
+    <!-- Tombol Utama "Home" -->
+    <button type="button" onclick="toggleMenuDropdown()" style="display: flex; align-items: center; gap: 8px; border: 1px solid var(--green); background: var(--green); color: white; padding: 9px 18px; border-radius: 8px; font-weight: 700;">
+      <i class="fas fa-bars"></i> Menu Utama (Home)
+    </button>
+    
+    <!-- Kotak Pilihan Menu (Dropdown) di sebelah kiri -->
+    <div id="dropdownMenuContent" style="display: none; position: absolute; left: 0; top: 110%; background: white; min-width: 220px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; z-index: 1000;">
+      <button type="button" class="active" data-target="berandaView" onclick="showView('beranda'); tutupMenuDropdown();" style="width: 100%; text-align: left; border: none; background: white; padding: 12px 16px; font-weight: 700; color: var(--green); border-bottom: 1px solid #f1f7f3; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-home" style="width: 16px;"></i> Beranda
+      </button>
+      <button type="button" data-target="kelasView" onclick="showView('kelas'); tutupMenuDropdown();" style="width: 100%; text-align: left; border: none; background: white; padding: 12px 16px; font-weight: 700; color: var(--green); border-bottom: 1px solid #f1f7f3; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-school" style="width: 16px;"></i> Jadwal Per Kelas
+      </button>
+      <button type="button" data-target="guruView" onclick="showView('guru'); tutupMenuDropdown();" style="width: 100%; text-align: left; border: none; background: white; padding: 12px 16px; font-weight: 700; color: var(--green); border-bottom: 1px solid #f1f7f3; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-chalkboard-user" style="width: 16px;"></i> Jadwal Per Guru
+      </button>
+      <button type="button" data-target="piketView" onclick="showView('piket'); tutupMenuDropdown();" style="width: 100%; text-align: left; border: none; background: white; padding: 12px 16px; font-weight: 700; color: var(--green); border-bottom: 1px solid #f1f7f3; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-shield-halved" style="width: 16px;"></i> Jadwal Piket
+      </button>
+      <button type="button" data-target="izinView" onclick="showView('izin'); tutupMenuDropdown();" style="width: 100%; text-align: left; border: none; background: white; padding: 12px 16px; font-weight: 700; color: #9e2424; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-triangle-exclamation" style="width: 16px;"></i> Guru Izin / Kosong
+      </button>
+    </div>
+  </div>
 </nav>
 
 <main>
@@ -1173,7 +1193,32 @@ document.addEventListener("DOMContentLoaded", () => {
     muatPengumumanBeranda();
 });
 </script>
+// Fungsi membuka/menutup menu dropdown Home
+function toggleMenuDropdown() {
+    const menu = document.getElementById('dropdownMenuContent');
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+    }
+}
 
+function tutupMenuDropdown() {
+    const menu = document.getElementById('dropdownMenuContent');
+    if (menu) {
+        menu.style.display = 'none';
+    }
+}
+
+// Tutup menu otomatis jika pengguna mengklik di luar area tombol Home
+window.addEventListener('click', function(e) {
+    const container = document.querySelector('nav div');
+    const menu = document.getElementById('dropdownMenuContent');
+    if (container && menu && !container.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+  </script>
 <!-- Skrip Registrasi Service Worker PWA -->
 <script>
   if ('serviceWorker' in navigator) {
