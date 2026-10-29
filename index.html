@@ -660,45 +660,37 @@ function parseScheduleSheet(sheet) {
   return result;
 }
 
-/* MEMBACA JADWAL PIKET */
-function parsePiketSheet(sheet) {
-  const rows=XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
+/* MEMBACA JADWAL PIKET */function parsePiketSheet(sheet) {
+  const rows = XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
   if(!rows.length) return {headers:[],data:[]};
-  let headerIndex=0,bestScore=-1;
-
-  for(let i=0;i<Math.min(rows.length,15);i++) {
-    const row=rows[i].map(clean);
-    const filled=row.filter(Boolean).length;
-    if(!filled) continue;
-    const text=row.map(normalize);
-    let score=filled;
-    if(text.some(v=>/hari|day/.test(v))) score+=3;
-    if(text.some(v=>/guru|petugas|nama|piket/.test(v))) score+=3;
-    if(text.some(v=>/kelas|waktu|jam|keterangan|tugas/.test(v))) score+=2;
-    if(score>bestScore) { bestScore=score;headerIndex=i; }
-    if(score>=6) break;
+  
+  let headerRowIndex = -1, headers = [];
+  for(let i = 0; i < Math.min(rows.length, 15); i++) {
+    const candidate = rows[i].map(clean);
+    const normalized = candidate.map(normalize);
+    const hasDay = normalized.some(x => ["hari","day","senin"].includes(x) || HARI.some(d => normalize(d) === x));
+    const hasPeriod = normalized.some(x => ["jp","jamke","jam","period","waktu"].includes(x));
+    if(hasDay || hasPeriod) {
+      headerRowIndex = i; headers = candidate; break;
+    }
+  }
+  
+  if(headerRowIndex < 0) {
+    headerRowIndex = 0;
+    headers = rows[0].map((v,i) => clean(v) || ("Kolom "+(i+1)));
   }
 
-  const headers=rows[headerIndex].map((v,i)=>clean(v)||("Kolom "+(i+1)));
-  while(headers.length&&/^Kolom \d+$/.test(headers[headers.length-1])) {
-    const lastIndex=headers.length-1;
-    if(rows.slice(headerIndex+1).some(row=>clean(row[lastIndex])!=="")) break;
-    headers.pop();
-  }
-
-  const data=[];
-  for(let i=headerIndex+1;i<rows.length;i++) {
-    const row=rows[i]||[];
+  const data = [];
+  for(let i = headerRowIndex + 1; i < rows.length; i++) {
+    const row = rows[i];
     if(isBlankRow(row)) continue;
-    const normalizedRow=row.map(normalize);
-    const normalizedHeaders=headers.map(normalize);
-    const repeated=normalizedRow.filter((v,j)=>v&&v===normalizedHeaders[j]).length;
-    if(repeated>=Math.min(2,headers.length)) continue;
-    const obj={};
-    headers.forEach((header,j)=>obj[header]=clean(row[j]));
+    const obj = {};
+    headers.forEach((header, j) => {
+      obj[header] = clean(row[j]);
+    });
     data.push(obj);
   }
-  return {headers,data};
+  return {headers, data};
 }
 
 async function loadWorkbook() {
@@ -918,21 +910,21 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 function countTeacherPiket(teacherName) {
-  const wanted=normalize(teacherName);
+  const wanted = normalize(teacherName);
   if(!wanted) return 0;
-  let count=0;
-  state.piket.forEach(row=>{
-    let found=false;
-    state.piketHeaders.forEach(header=>{
-      if(!/guru|petugas|nama|piket/i.test(normalize(header))) return;
-      const names=clean(row[header]).split(/\n|,|;|\/|&/).map(normalize);
-      if(names.includes(wanted)) found=true;
+  let count = 0;
+  state.piket.forEach(row => {
+    state.piketHeaders.forEach(header => {
+      const cellValue = clean(row[header]);
+      // Pisahkan jika ada beberapa nama guru dalam satu sel
+      const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
+      if(names.includes(wanted)) {
+        count++;
+      }
     });
-    if(found) count++;
   });
   return count;
 }
-
 function renderClassSchedule() {
   if(!state.loaded) return;
   const className=$("kelasSelect").value;
