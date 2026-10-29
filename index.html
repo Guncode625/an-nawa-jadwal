@@ -468,7 +468,7 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     </div>
     <div class="print-ttd" style="display: none; margin-top: 30px; justify-content: flex-end; font-size: 11px;">
       <div style="text-align: center; width: 220px;">
-        <p style="margin: 0 0 5px;" id="printTanggalTtd">Pulo Ampel, 29 Oktober 2026</p>
+        <p style="margin: 0 0 5px;" id="printTanggalTtd">Pulo Ampel, -</p>
         <p style="margin: 0 0 45px; font-weight: bold;">Bagian Pengajaran,</p>
         <p style="margin: 0; font-weight: bold; text-decoration: underline;">( ............................................ )</p>
       </div>
@@ -996,6 +996,14 @@ function showView(view) {
 }
 
 function printCurrentView() {
+  const sekarang = new Date();
+    const opsi = { day: 'numeric', month: 'long', year: 'numeric' };
+    const tanggalFormat = sekarang.toLocaleDateString('id-ID', opsi);
+    
+    const elemenTtd = document.getElementById('printTanggalTtd');
+    if (elemenTtd) {
+        elemenTtd.textContent = "Pulo Ampel, " + tanggalFormat;
+    }
   window.print();
 }
 
