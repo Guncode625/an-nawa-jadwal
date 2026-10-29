@@ -359,11 +359,17 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
     <div id="kotakPengumumanBeranda" style="background: #fffbeb; border: 1px solid #fef3c7; border-left: 5px solid #d97706; padding: 15px 18px; border-radius: 8px; margin: 20px 0; display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
         <h4 style="margin: 0; color: #92400e; font-size: 14px;"><i class="fas fa-bullhorn"></i> PENGUMUMAN BAGIAN PENGAJARAN</h4>
-        <span id="tanggalPengumuman" style="font-size: 12px; color: #b45309; font-weight: bold;"></span>
+        
+        <!-- Tanggal & Tombol Hapus di Pojok Kanan -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="tanggalPengumuman" style="font-size: 12px; color: #b45309; font-weight: bold;"></span>
+          <button onclick="hapusPengumumanLangsung()" class="no-print" title="Hapus Pengumuman" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i class="fas fa-trash-can"></i> Hapus
+          </button>
+        </div>
       </div>
       <p id="isiPengumumanBeranda" style="margin: 0; color: #78350f; font-size: 18px; white-space: pre-wrap; line-height: 1.5;"></p>
     </div>
-
     <div id="status" class="status" style="margin-top: 15px;">Memuat data jadwal dari file Excel...</div>
 
     <!-- Tombol Kelola Pengumuman Khusus Pengajaran -->
@@ -1100,7 +1106,7 @@ function renderTabelGuruIzin() {
 }
 
 function hapusDataIzin(index) {
-    const sandiBenar = "bapeng2026";
+    const sandiBenar = "bapengun2026";
     const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran untuk menghapus data:");
     
     if (inputSandi !== sandiBenar) {
@@ -1155,23 +1161,23 @@ function simpanPengumuman(e) {
     muatPengumumanBeranda();
 }
 
-function hapusPengumuman() {
-    const sandiBenar = "bapeng2026";
+function hapusPengumumanLangsung() {
+    const sandiBenar = "bapengun2026";
     const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran untuk menghapus pengumuman:");
     
+    if (inputSandi === null) return;
+    
     if (inputSandi !== sandiBenar) {
-        if (inputSandi !== null) alert("Kata sandi salah!");
+        alert("Kata sandi salah!");
         return;
     }
 
     if (confirm('Yakin ingin menghapus pengumuman ini dari beranda?')) {
         localStorage.removeItem('anNawaPengumuman');
         alert('Pengumuman berhasil dihapus.');
-        tutupModalPengumuman();
         muatPengumumanBeranda();
     }
 }
-
 function muatPengumumanBeranda() {
     const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || 'null');
     const kotak = document.getElementById('kotakPengumumanBeranda');
