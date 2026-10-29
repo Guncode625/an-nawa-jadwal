@@ -910,7 +910,7 @@ function renderPiketTable() {
 
 /* NAVIGASI MENU TERPISAH (TAB / VIEW SWITCHER) */
 function showView(view) {
-  if(!["beranda","kelas","guru","piket"].includes(view)) view="beranda";
+  if(!["beranda","kelas","guru","piket","izin"].includes(view)) view="beranda";
   document.body.dataset.view=view;
   
   $("berandaView").classList.toggle("hidden", view!=="beranda");
