@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#075e43">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="An-Nawa">
+<meta name="apple-mobile-web-app-title" content="Jadwal An-Nawa">
   
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -567,11 +567,24 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
             
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px;">
                 <button type="button" onclick="tutupModalPengumuman()" class="btn secondary" style="background: #e2e8f0; color: #333; border: none;">Batal</button>
-                <button type="button" onclick="hapusPengumuman()" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 8px 12px; border-radius: 8px; font-weight: bold;">Hapus Pengumuman</button>
+                <button type="button" onclick="konfirmasiHapusPengumumanDariModal()" style="background: #fee2e2; color: #991b1b; border: 1px solid #f87171; padding: 8px 12px; border-radius: 8px; font-weight: bold;">Hapus Pengumuman</button>
                 <button type="submit" class="btn">Terbitkan</button>
             </div>
         </form>
     </div>
+</div>
+
+<!-- MODAL SANDI ELEGAN (MENGGANTI POP-UP BROWSER) -->
+<div id="pesantrenPasswordModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; padding:15px;">
+  <div style="background:#fff; padding:24px; border-radius:12px; width:100%; max-width:320px; box-shadow:0 4px 20px rgba(0,0,0,0.2); text-align:center; font-family:sans-serif;">
+    <h3 style="margin-top:0; color:#075e43; font-size:18px;">Verifikasi Admin</h3>
+    <p style="color:#555; font-size:14px; margin-bottom:15px;">Masukkan kata sandi:</p>
+    <input type="password" id="modalPasswordInput" placeholder="Kata sandi..." style="width:100%; padding:10px; box-sizing:border-box; border:1px solid #cbd9d0; border-radius:6px; font-size:16px; margin-bottom:15px; outline:none;">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button type="button" onclick="closePasswordModal(false)" style="padding:8px 14px; background:#e2e8f0; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:#333;">Batal</button>
+      <button type="button" onclick="closePasswordModal(true)" style="padding:8px 14px; background:#075e43; border:none; border-radius:6px; cursor:pointer; font-weight:bold; color:#fff;">Masuk</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -666,7 +679,8 @@ function parseScheduleSheet(sheet) {
   return result;
 }
 
-/* MEMBACA JADWAL PIKET */function parsePiketSheet(sheet) {
+/* MEMBACA JADWAL PIKET */
+function parsePiketSheet(sheet) {
   const rows = XLSX.utils.sheet_to_json(sheet,{header:1,defval:"",raw:false});
   if(!rows.length) return {headers:[],data:[]};
   
@@ -922,7 +936,6 @@ function countTeacherPiket(teacherName) {
   state.piket.forEach(row => {
     state.piketHeaders.forEach(header => {
       const cellValue = clean(row[header]);
-      // Pisahkan jika ada beberapa nama guru dalam satu sel
       const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
       if(names.includes(wanted)) {
         count++;
@@ -1033,21 +1046,54 @@ function printCurrentView() {
   window.print();
 }
 
+/* SISTEM MODAL PASSWORD ELEGAN (PENGGANTI PROMPT BROWSER) */
+let activePasswordCallback = null;
+
+function mintaSandiCustom(callback) {
+  activePasswordCallback = callback;
+  $("modalPasswordInput").value = "";
+  $("pesantrenPasswordModal").style.display = "flex";
+  setTimeout(() => $("modalPasswordInput").focus(), 100);
+}
+
+function closePasswordModal(isConfirmed) {
+  const modal = $("pesantrenPasswordModal");
+  const enteredValue = $("modalPasswordInput").value;
+  modal.style.display = "none";
+  
+  if (isConfirmed && activePasswordCallback) {
+    activePasswordCallback(enteredValue);
+  }
+  activePasswordCallback = null;
+}
+
+// Tombol Enter pada input sandi
+document.addEventListener("DOMContentLoaded", () => {
+    const passInput = $("modalPasswordInput");
+    if(passInput) {
+        passInput.addEventListener("keypress", function(e) {
+            if(e.key === "Enter") {
+                closePasswordModal(true);
+            }
+        });
+    }
+});
+
 /* FUNGSI GURU IZIN */
 function bukaModalIzin() {
     const sandiBenar = "bapeng2026"; 
-    const inputSandi = prompt("Masukkan kata sandi khusus Bagian Pengajaran:");
-    
-    if (inputSandi === null) return;
-    
-    if (inputSandi === sandiBenar) {
-        const modal = document.getElementById('modalGuruIzin');
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
-        document.getElementById('tglIzin').valueAsDate = new Date();
-    } else {
-        alert("Kata sandi salah! Anda tidak memiliki akses untuk menambah/mengubah data izin guru.");
-    }
+    mintaSandiCustom(function(inputSandi) {
+        if (inputSandi === null || inputSandi === "") return;
+        
+        if (inputSandi === sandiBenar) {
+            const modal = document.getElementById('modalGuruIzin');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            document.getElementById('tglIzin').valueAsDate = new Date();
+        } else {
+            alert("Kata sandi salah! Anda tidak memiliki akses untuk menambah/mengubah data izin guru.");
+        }
+    });
 }
 function tutupModalIzin() {
     const modal = document.getElementById('modalGuruIzin');
@@ -1107,38 +1153,38 @@ function renderTabelGuruIzin() {
 
 function hapusDataIzin(index) {
     const sandiBenar = "bapengun2026";
-    const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran untuk menghapus data:");
-    
-    if (inputSandi !== sandiBenar) {
-        if (inputSandi !== null) {
+    mintaSandiCustom(function(inputSandi) {
+        if (inputSandi === null || inputSandi === "") return;
+        
+        if (inputSandi !== sandiBenar) {
             alert("Kata sandi salah! Penghapusan dibatalkan.");
+            return;
         }
-        return;
-    }
 
-    if (confirm('Yakin ingin menghapus catatan guru izin ini?')) {
-        let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
-        listIzin.splice(index, 1);
-        localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
-        renderTabelGuruIzin();
-    }
+        if (confirm('Yakin ingin menghapus catatan guru izin ini?')) {
+            let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
+            listIzin.splice(index, 1);
+            localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
+            renderTabelGuruIzin();
+        }
+    });
 }
 
 /* FUNGSI PENGUMUMAN */
 function bukaFormPengumuman() {
     const sandiBenar = "bapeng2026";
-    const inputSandi = prompt("Masukkan kata sandi Bagian Pengajaran:");
-    
-    if (inputSandi === null) return;
-    
-    if (inputSandi === sandiBenar) {
-        const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || '{}');
-        document.getElementById('teksPengumumanInput').value = saved.pesan || '';
-        const modal = document.getElementById('modalPengumuman');
-        modal.style.display = 'flex';
-    } else {
-        alert("Kata sandi salah! Anda tidak memiliki akses untuk membuat pengumuman.");
-    }
+    mintaSandiCustom(function(inputSandi) {
+        if (inputSandi === null || inputSandi === "") return;
+        
+        if (inputSandi === sandiBenar) {
+            const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || '{}');
+            document.getElementById('teksPengumumanInput').value = saved.pesan || '';
+            const modal = document.getElementById('modalPengumuman');
+            modal.style.display = 'flex';
+        } else {
+            alert("Kata sandi salah! Anda tidak memiliki akses untuk membuat pengumuman.");
+        }
+    });
 }
 
 function tutupModalPengumuman() {
@@ -1161,22 +1207,27 @@ function simpanPengumuman(e) {
     muatPengumumanBeranda();
 }
 
+function konfirmasiHapusPengumumanDariModal() {
+    tutupModalPengumuman();
+    hapusPengumumanLangsung();
+}
+
 function hapusPengumumanLangsung() {
     const sandiBenar = "bapengun2026";
-    const inputSandi = prompt("Masukkan kata sandi khusus penghapusan pengumuman:");
-    
-    if (inputSandi === null) return;
-    
-    if (inputSandi !== sandiBenar) {
-        alert("Kata sandi salah!");
-        return;
-    }
+    mintaSandiCustom(function(inputSandi) {
+        if (inputSandi === null || inputSandi === "") return;
+        
+        if (inputSandi !== sandiBenar) {
+            alert("Kata sandi salah!");
+            return;
+        }
 
-    if (confirm('Yakin ingin menghapus pengumuman ini dari beranda?')) {
-        localStorage.removeItem('anNawaPengumuman');
-        alert('Pengumuman berhasil dihapus.');
-        muatPengumumanBeranda();
-    }
+        if (confirm('Yakin ingin menghapus pengumuman ini dari beranda?')) {
+            localStorage.removeItem('anNawaPengumuman');
+            alert('Pengumuman berhasil dihapus.');
+            muatPengumumanBeranda();
+        }
+    });
 }
 function muatPengumumanBeranda() {
     const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || 'null');
@@ -1222,7 +1273,6 @@ window.addEventListener('click', function(e) {
     const dropdownWrap = document.querySelector('header .no-print');
     const menu = document.getElementById('dropdownMenuContent');
     
-    // Jika dropdown sedang terbuka dan area yang diklik berada di luar wadah tombol/menu dropdown
     if (menu && menu.style.display === 'block') {
         if (dropdownWrap && !dropdownWrap.contains(e.target)) {
             menu.style.display = 'none';
