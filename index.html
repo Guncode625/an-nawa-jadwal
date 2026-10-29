@@ -944,7 +944,7 @@ loadWorkbook();
             </div>
             <div>
                 <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Nama Guru yang Izin</label>
-                <input type="text" id="namaAsal" placeholder="Contoh: Ustadz Ahmad" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+                <input type="text" id="namaAsal" placeholder="Contoh: Ustadz Ram Haryo" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
             </div>
             <div>
                 <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Jam Ke- / Waktu</label>
@@ -953,6 +953,10 @@ loadWorkbook();
             <div>
                 <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Kelas</label>
                 <input type="text" id="kelasIzin" placeholder="Contoh: VII A" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
+            </div>
+            <div>
+                <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Keterangan / Alasan Izin</label>
+                <input type="text" id="keteranganIzin" placeholder="Contoh: Sakit / Urusan Keluarga" required style="width: 100%; padding: 10px; border: 1px solid #cbd9d0; border-radius: 8px;">
             </div>
             <div>
                 <label style="font-size: 13px; font-weight: bold; color: var(--muted); display: block; margin-bottom: 4px;">Guru Pengganti / Piket (Opsional)</label>
@@ -1001,6 +1005,7 @@ function simpanDataIzin(e) {
         guru: document.getElementById('namaAsal').value,
         jam: document.getElementById('jamIzin').value,
         kelas: document.getElementById('kelasIzin').value,
+        keterangan: document.getElementById('keteranganIzin').value ||
         pengganti: document.getElementById('namaPengganti').value || 'Belum ada'
     };
 
@@ -1025,7 +1030,7 @@ function renderTabelGuruIzin() {
     }
 
     let html = `<table><thead><tr>
-        <th>Tanggal</th><th>Nama Guru</th><th>Jam Ke</th><th>Kelas</th><th>Guru Pengganti / Piket</th><th>Aksi</th>
+        <th>Tanggal</th><th>Nama Guru</th><th>Jam Ke</th><th>Kelas</th><th>Keterangan</th><th>Guru Pengganti / Piket</th><th>Aksi</th>
     </tr></thead><tbody>`;
 
     listIzin.forEach((item, index) => {
@@ -1034,6 +1039,7 @@ function renderTabelGuruIzin() {
             <td><strong>${escapeHTML(item.guru)}</strong></td>
             <td>${escapeHTML(item.jam)}</td>
             <td>${escapeHTML(item.kelas)}</td>
+            <td>${escapeHTML(item.keterangan)}</td>
             <td>${escapeHTML(item.pengganti)}</td>
             <td><button onclick="hapusDataIzin(${index})" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; font-size:11px;">Hapus</button></td>
         </tr>`;
