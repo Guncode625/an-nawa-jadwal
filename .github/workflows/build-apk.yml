@@ -195,7 +195,7 @@ jobs:
           }
           EOF
 
-          # 4. Konfigurasi Gradle Utama
+                    # 4. Konfigurasi Gradle Utama
           cat << 'EOF' > build.gradle
           buildscript {
               repositories {
@@ -204,12 +204,6 @@ jobs:
               }
               dependencies {
                   classpath 'com.android.tools.build:gradle:7.4.2'
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
               }
           }
           EOF
