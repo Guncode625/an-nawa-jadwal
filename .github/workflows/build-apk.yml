@@ -93,7 +93,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle
+        # 3. Konfigurasi Gradle yang Kompatibel
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -101,7 +101,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:7.4.2'
+                classpath 'com.android.tools.build:gradle:8.1.0'
             }
         }
         allprojects {
@@ -123,18 +123,19 @@ jobs:
         }
         android {
             namespace 'com.annawa.jadwal'
-            compileSdk 33
+            compileSdk 34
             defaultConfig {
                 applicationId "com.annawa.jadwal"
                 minSdk 21
-                targetSdk 33
+                targetSdk 34
                 versionCode 1
                 versionName "1.0"
             }
         }
         EOF
 
-        gradle wrapper --gradle-version 7.5
+        # Paksa gunakan Gradle wrapper versi 8.0 agar cocok
+        gradle wrapper --gradle-version 8.0
 
     - name: Build APK Ringan via Gradle
       run: |
