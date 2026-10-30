@@ -1019,7 +1019,9 @@ function getPiketTeacherNames() {
     });
   });
   return uniqueSorted(names);
-/* PERHITUNGAN BEBAN PIKET AKURAT (MENGAKUMULASI BESARAN JP):
+}
+
+/* PERHITUNGAN BEBAN PIKET AKURAT & AMAN:
    - Jumat jam ke-5 (berbagi tugas / 2 nama) = 1 JP
    - Jam ke-7 (semua hari) = 1 JP
    - Sesi jam piket standar lainnya = 2 JP penuh
@@ -1029,34 +1031,39 @@ function countTeacherPiket(teacherName) {
   if(!wanted) return 0;
   let totalJpPiket = 0;
 
-  state.piket.forEach(row => {
-    const hariBaris = normalize(row["Hari"] || row["hari"] || "");
-    const jpBaris = String(row["JP"] || row["jp"] || row["Jam"] || row["jam"] || "");
-    
-    let guruDiBarisIni = false;
-    state.piketHeaders.forEach(header => {
-      const cellValue = clean(row[header]);
-      const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
-      if(names.includes(wanted)) {
-        guruDiBarisIni = true;
+  try {
+    if (!state || !state.piket || !state.piket.length) return 0;
+
+    state.piket.forEach(row => {
+      if (!row) return;
+      const hariBaris = normalize(row["Hari"] || row["hari"] || "");
+      const jpBaris = String(row["JP"] || row["jp"] || row["Jam"] || row["jam"] || "");
+      
+      let guruDiBarisIni = false;
+      if (state.piketHeaders && state.piketHeaders.length) {
+        state.piketHeaders.forEach(header => {
+          const cellValue = clean(row[header]);
+          const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
+          if(names.includes(wanted)) {
+            guruDiBarisIni = true;
+          }
+        });
+      }
+
+      if (guruDiBarisIni) {
+        const isJam7 = jpBaris.includes("7");
+        const isJumatJam5 = hariBaris.includes("jumat") && jpBaris.includes("5");
+
+        if (isJam7 || isJumatJam5) {
+          totalJpPiket += 1;
+        } else {
+          totalJpPiket += 2;
+        }
       }
     });
-
-    if (guruDiBarisIni) {
-      // 1. Cek apakah ini Jam ke-7 (di hari apa pun) -> Tambah 1 JP
-      const isJam7 = jpBaris.includes("7");
-      
-      // 2. Cek apakah ini Jumat jam ke-5 -> Tambah 1 JP
-      const isJumatJam5 = hariBaris.includes("jumat") && jpBaris.includes("5");
-
-      if (isJam7 || isJumatJam5) {
-        totalJpPiket += 1;
-      } else {
-        // Jam piket standar lainnya -> Tambah 2 JP penuh
-        totalJpPiket += 2;
-      }
-    }
-  });
+  } catch(e) {
+    console.error("Error hitung piket:", e);
+  }
 
   return totalJpPiket;
 }
@@ -1097,11 +1104,11 @@ function renderTeacherSchedule() {
   const total=teaching+piket;
 
   $("guruPrintName").textContent="Guru: "+teacherName;
-  $("guruPrintTotal").textContent="Mengajar: "+teaching+" JP | Piket: "+piket+" Sesi | Total Beban: "+total;
+  $("guruPrintTotal").textContent="Mengajar: "+teaching+" JP | Piket: "+piket+" JP | Total Beban: "+total;
   $("guruSummary").innerHTML=
     '<div class="summary-card"><span>Nama Guru</span><strong>'+escapeHTML(teacherName)+'</strong></div>'+
     '<div class="summary-card"><span>Jam Mengajar</span><strong>'+teaching+' JP</strong></div>'+
-    '<div class="summary-card"><span>Jadwal Piket</span><strong>'+piket+' Sesi</strong></div>'+
+    '<div class="summary-card"><span>Beban Piket</span><strong>'+piket+' JP</strong></div>'+
     '<div class="summary-card"><span>Total Beban</span><strong>'+total+'</strong></div>';
   $("guruTable").innerHTML=buildWeeklyTable(rows,"guru");
 }
