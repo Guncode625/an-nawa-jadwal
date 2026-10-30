@@ -356,6 +356,73 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .panel { padding:14px; }
   .control-group { min-width:100%; }
 }
+  /* PERBAIKAN RESPONSIF UNTUK TAMPILAN PORTRAIT HP */
+@media (max-width: 768px) {
+  /* Pastikan container utama menyesuaikan lebar layar HP sepenuhnya */
+  main {
+    padding: 12px 8px 30px !important;
+    width: 100% !important;
+  }
+  
+  /* Perbaiki header agar logo dan teks tersusun rapi ke bawah jika sempit */
+  .header-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 15px 10px !important;
+    gap: 10px !important;
+  }
+  
+  .header-inner > div:first-child {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px !important;
+  }
+  
+  .brand h1 {
+    font-size: 20px !important;
+  }
+  
+  .brand p {
+    font-size: 11.5px !important;
+  }
+
+  /* Posisikan tombol menu Home agar mudah dijangkau di kanan atas / tengah */
+  .site-header .no-print {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+  }
+
+  /* Atur agar tabel jadwal bisa digeser horizontal dengan mulus tanpa merusak layout */
+  .table-wrap {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Sesuaikan ukuran font tabel di HP agar lebih ringkas dan proporsional */
+  table.schedule-table {
+    min-width: 650px !important;
+    font-size: 11px !important;
+  }
+
+  .schedule-table th, .schedule-table td {
+    padding: 6px 4px !important;
+  }
+
+  /* Kartu ringkasan (summary) agar tersusun turun ke bawah di HP */
+  .summary {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
 </style>
 </head>
 
