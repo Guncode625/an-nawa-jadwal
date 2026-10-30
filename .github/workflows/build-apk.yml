@@ -19,11 +19,11 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Siapkan Proyek & WebView Android
+    - name: Buat Struktur Proyek Android Native
       run: |
-        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal
+        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
         
-        # Salin file web utama pesantren
+        # Salin file web utama dan database ke assets
         cp index.html app/src/main/assets/
         cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
@@ -35,7 +35,8 @@ jobs:
             <application
                 android:allowBackup="true"
                 android:label="Jadwal An-Nawa"
-                android:usesCleartextTraffic="true">
+                android:usesCleartextTraffic="true"
+                android:icon="@mipmap/ic_launcher">
                 <activity
                     android:name=".MainActivity"
                     android:exported="true">
@@ -48,7 +49,7 @@ jobs:
         </manifest>
         EOF
 
-        # 2. MainActivity.java
+        # 2. MainActivity.java (Penuh dengan WebView dan pengaturan JS agar lancar)
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -58,21 +59,42 @@ jobs:
         import android.webkit.WebViewClient;
 
         public class MainActivity extends Activity {
+            private WebView webView;
+
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
-                WebView webView = new WebView(this);
+                webView = new WebView(this);
                 WebSettings settings = webView.getSettings();
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
+                settings.setAllowFileAccess(true);
+                settings.setAllowContentAccess(true);
+                
                 webView.setWebViewClient(new WebViewClient());
                 webView.loadUrl("file:///android_asset/index.html");
                 setContentView(webView);
             }
+
+            @Override
+            public void onBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    super.onBackPressed();
+                }
+            }
         }
         EOF
 
-        # 3. Konfigurasi Root Build.gradle
+        # 3. strings.xml wajib untuk label aplikasi
+        cat << 'EOF' > app/src/main/res/values/strings.xml
+        <resources>
+            <string name="app_name">Jadwal An-Nawa</string>
+        </resources>
+        EOF
+
+        # 4. Konfigurasi Gradle Root
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -96,7 +118,7 @@ jobs:
         rootProject.name = "Jadwal AnNawa"
         EOF
 
-        # 4. Konfigurasi App Build.gradle
+        # 5. Konfigurasi app/build.gradle
         cat << 'EOF' > app/build.gradle
         plugins {
             id 'com.android.application'
@@ -116,17 +138,13 @@ jobs:
 
         gradle wrapper --gradle-version 7.5
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Kompilasi APK Debug
+    - name: Build APK via Gradle
       run: |
-        yes | sdkmanager --licenses || true
         chmod +x ./gradlew
         ./gradlew assembleDebug --no-daemon
 
-    - name: Unggah File APK Matang
+    - name: Unggah Artefak APK
       uses: actions/upload-artifact@v4
       with:
-        name: Aplikasi-Jadwal-AnNawa-APK
+        name: Jadwal-AnNawa-App-Debug
         path: app/build/outputs/apk/debug/*.apk
