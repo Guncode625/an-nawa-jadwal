@@ -1021,61 +1021,65 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 
-
-
-/* PERHITUNGAN PIKET BERDASARKAN SETIAP NAMA PETUGAS (1 NAMA = 1 JP) */
+/* PERHITUNGAN PIKET FINAL BERDASARKAN KOLOM JAM KE (KOLOM A) */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
-
   let totalJpPiket = 0;
 
   try {
     if (!state || !state.piket || !state.piket.length) return 0;
 
-    const hari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-    // Ambil hanya kolom hari, bukan kolom Jam Ke atau Waktu
-    const kolomHari = state.piketHeaders.filter(header =>
-      hari.includes(normalizeDay(header))
-    );
-
     state.piket.forEach(row => {
       if (!row) return;
-
-      kolomHari.forEach(header => {
-        let cellStr = clean(row[header]);
-
-        if (!cellStr) return;
-
-        // Samakan format baris baru dari Excel dan HTML
-        cellStr = cellStr
-          .replace(/<br\s*\/?>/gi, "\n")
-          .replace(/[()]/g, "\n");
-
-        // Pisahkan setiap nama petugas
-        const names = cellStr
-          .split(/\r?\n|,|;|\/|&|\bdan\b/i)
-          .map(name => normalize(name))
-          .filter(Boolean);
-
-        // Setiap nama yang cocok dihitung 1 JP
-        names.forEach(name => {
-          if (name === wanted) {
-            totalJpPiket += 1;
-          }
-        });
+      
+      // 1. Cek apakah nama guru ada di baris ini (mencari di semua kolom hari C sampai H)
+      let guruDiBarisIni = false;
+      Object.values(row).forEach(val => {
+        const cellStr = clean(val);
+        const names = cellStr.split(/\n|,|;|\/|&/).map(normalize);
+        if (names.includes(wanted)) {
+          guruDiBarisIni = true;
+        }
       });
-    });
 
+      if (guruDiBarisIni) {
+        // Ambil nilai secara spesifik dari Kolom A (Jam Ke / Jam / JP)
+        let jamKeVal = "";
+        const keys = Object.keys(row);
+        if (keys.length > 0) {
+          // Biasanya kolom pertama (indeks 0) adalah Kolom A "Jam Ke"
+          jamKeVal = String(row[keys[0]] || "").trim();
+        }
+        
+        // Gabungkan teks baris untuk mendeteksi nama hari (khususnya Jumat)
+        const barisTeks = normalize(Object.values(row).join(" "));
+
+        // Jika baris istirahat (ditandai strip atau teks istirahat), abaikan
+        if (jamKeVal.includes("—") || jamKeVal.includes("-") || barisTeks.includes("istirahat")) {
+          return;
+        }
+
+        // ATURAN JP MUTLAK:
+        // - Jika Jam ke-7 (semua hari) -> 1 JP
+        // - Jika Jam ke-5 khusus di hari Jumat -> 1 JP
+        const isJam7 = jamKeVal.includes("7");
+        const isJumatJam5 = jamKeVal.includes("5") && barisTeks.includes("jumat");
+
+        if (isJam7 || isJumatJam5) {
+          totalJpPiket += 1;
+        } else {
+          // Jam piket standar lainnya (Jam 1, 2, 3, 4, dan Jam 5 di luar hari Jumat) -> 2 JP penuh
+          totalJpPiket += 2;
+        }
+      }
+    });
   } catch(e) {
     console.error("Error hitung piket:", e);
   }
 
   return totalJpPiket;
-}
-
-  
+}  
 function renderClassSchedule() {
   if(!state.loaded) return;
   const className=$("kelasSelect").value;
