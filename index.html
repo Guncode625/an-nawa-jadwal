@@ -1021,63 +1021,98 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 
-/* PERHITUNGAN PIKET BERDASARKAN KOLOM JAM KE (KOLOM A) */
+
+/* PERHITUNGAN BEBAN JP PIKET */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
-  if(!wanted) return 0;
+  if (!wanted) return 0;
+
   let totalJpPiket = 0;
 
   try {
-    if (!state || !state.piket || !state.piket.length) return 0;
+    if (!state.piket || !state.piket.length) return 0;
+
+    // Cari kolom Jam Ke
+    const jamKeHeader = state.piketHeaders.find(header =>
+      ["jamke", "jp", "jam"].includes(normalize(header))
+    );
+
+    if (!jamKeHeader) {
+      console.warn("Kolom Jam Ke tidak ditemukan.");
+      return 0;
+    }
+
+    // Cari kolom hari
+    const daftarHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+    const kolomHari = state.piketHeaders
+      .map(header => ({
+        header,
+        hari: normalizeDay(header)
+      }))
+      .filter(item => daftarHari.includes(item.hari));
+
+    // Ambil nama utama dan nama dalam tanda kurung
+    function ambilNamaPiket(value) {
+      if (!value) return [];
+
+      const teks = String(value)
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<[^>]*>/g, "")
+        .replace(/\(/g, "\n")
+        .replace(/\)/g, "\n");
+
+      return teks
+        .split(/[\n,;]+/)
+        .map(nama => nama.trim())
+        .filter(Boolean);
+    }
 
     state.piket.forEach(row => {
       if (!row) return;
-      
-      // 1. Cek apakah nama guru ada di baris ini (mencari di semua kolom)
-      let guruDiBarisIni = false;
-      Object.values(row).forEach(val => {
-        const cellStr = clean(val);
-        const names = cellStr.split(/\n|,|;|\/|&/).map(normalize);
-        if (names.includes(wanted)) {
-          guruDiBarisIni = true;
-        }
-      });
 
-      if (guruDiBarisIni) {
-        // Ambil nilai dari kolom "Jam Ke" atau kolom pertama yang mendeteksi jam
-        let jamKeVal = "";
-        Object.keys(row).forEach(key => {
-          const kNorm = normalize(key);
-          if (kNorm.includes("jam") || kNorm.includes("jp")) {
-            jamKeVal = String(row[key] || "");
-          }
-        });
-        
-        // Gabungkan seluruh teks baris untuk mendeteksi hari
-        const barisTeks = normalize(Object.values(row).join(" "));
+      const jamKe = periodNumber(row[jamKeHeader]);
 
-        // Lewati jika baris istirahat
-        if (barisTeks.includes("istirahat") || jamKeVal.includes("—")) {
-          return;
-        }
+      // Lewati baris istirahat dan baris di luar jam 1-7
+      if (jamKe < 1 || jamKe > 7) return;
 
-        // ATURAN JP:
-        // - Jika Jam ke-7 (semua hari) -> 1 JP
-        // - Jika Jam ke-5 khusus di hari Jumat -> 1 JP
-        const isJam7 = jamKeVal.includes("7") || barisTeks.includes("7");
-        const isJumatJam5 = (jamKeVal.includes("5") || barisTeks.includes("5")) && barisTeks.includes("jumat");
+      kolomHari.forEach(item => {
+        const namaPetugas = ambilNamaPiket(row[item.header]);
 
-        if (isJam7 || isJumatJam5) {
+        if (!namaPetugas.length) return;
+
+        const namaValid = namaPetugas
+          .map(nama => normalize(nama))
+          .filter(Boolean);
+
+        if (!namaValid.includes(wanted)) return;
+
+        // Jam ke-7 selalu 1 JP
+        if (jamKe === 7) {
           totalJpPiket += 1;
-        } else {
-          // Jam piket standar lainnya (termasuk jam ke-5 di hari biasa, jam 1, 2, 3, 4, 6) -> 2 JP penuh
+        }
+        // Jumat jam ke-5 selalu 1 JP
+        else if (item.hari === "Jumat" && jamKe === 5) {
+          totalJpPiket += 1;
+        }
+        // Jika ada dua nama dalam satu sel, masing-masing 1 JP
+        else if (namaValid.length > 1) {
+          totalJpPiket += 1;
+        }
+        // Nama tunggal pada jam 1-6 mendapat 2 JP
+        else {
           totalJpPiket += 2;
         }
-      }
+      });
     });
-  } catch(e) {
-    console.error("Error hitung piket:", e);
+
+  } catch (e) {
+    console.error("Error menghitung JP piket:", e);
   }
+
+  return totalJpPiket;
+}
+
 
   return totalJpPiket;
 }
