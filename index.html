@@ -1019,13 +1019,15 @@ function getPiketTeacherNames() {
     });
   });
   return uniqueSorted(names);
-/* PERHITUNGAN BEBAN PIKET AKURAT & AMAN */
+/* PERHITUNGAN BEBAN PIKET AKURAT (MENGAKUMULASI BESARAN JP):
+   - Jumat jam ke-5 (berbagi tugas / 2 nama) = 1 JP
+   - Jam ke-7 (semua hari) = 1 JP
+   - Sesi jam piket standar lainnya = 2 JP penuh
+*/
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
   let totalJpPiket = 0;
-
-  if (!state.piket || !state.piket.length) return 0;
 
   state.piket.forEach(row => {
     const hariBaris = normalize(row["Hari"] || row["hari"] || "");
@@ -1041,12 +1043,16 @@ function countTeacherPiket(teacherName) {
     });
 
     if (guruDiBarisIni) {
+      // 1. Cek apakah ini Jam ke-7 (di hari apa pun) -> Tambah 1 JP
       const isJam7 = jpBaris.includes("7");
+      
+      // 2. Cek apakah ini Jumat jam ke-5 -> Tambah 1 JP
       const isJumatJam5 = hariBaris.includes("jumat") && jpBaris.includes("5");
 
       if (isJam7 || isJumatJam5) {
         totalJpPiket += 1;
       } else {
+        // Jam piket standar lainnya -> Tambah 2 JP penuh
         totalJpPiket += 2;
       }
     }
