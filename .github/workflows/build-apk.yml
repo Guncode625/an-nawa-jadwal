@@ -19,7 +19,7 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Rangkai Struktur Proyek APK Ringan
+    - name: Rangkai Struktur Proyek & Build APK
       run: |
         # Buat struktur direktori Android standar
         mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
@@ -93,7 +93,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle yang Kompatibel
+        # 3. Konfigurasi Gradle murni tanpa wrapper bawaan yang bentrok
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -101,7 +101,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath 'com.android.tools.build:gradle:8.2.0'
             }
         }
         allprojects {
@@ -134,13 +134,8 @@ jobs:
         }
         EOF
 
-        # Paksa gunakan Gradle wrapper versi 8.0 agar cocok
-        gradle wrapper --gradle-version 8.0
-
-    - name: Build APK Ringan via Gradle
-      run: |
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --no-daemon
+        # Langsung jalankan gradle menggunakan engine global server tanpa gradlew wrapper
+        gradle assembleDebug --no-daemon
 
     - name: Unggah APK Ringan An-Nawa
       uses: actions/upload-artifact@v4
