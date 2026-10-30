@@ -5,179 +5,328 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Java JDK 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-    - name: Setup Android SDK & Gradle Wrapper
-      run: |
-        mkdir -p app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap-hdpi gradle/wrapper
+      - name: Setup Gradle 7.5
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '7.5'
 
-        # Salin logo pesantren sebagai ikon aplikasi
-        cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-        # Tema NoTitleBar agar bersih tanpa bilah hitam di atas
-        cat << 'EOF' > app/src/main/res/values/styles.xml
-        <resources>
-            <style name="AppTheme" parent="android:Theme.NoTitleBar">
-                <item name="android:windowFullscreen">false</item>
-            </style>
-        </resources>
-        EOF
+      - name: Install Android SDK Components
+        run: |
+          sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
-        # Manifest Android
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.annawa.jadwal">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-            <application
-                android:label="Jadwal An-Nawa"
-                android:icon="@mipmap/ic_launcher"
-                android:roundIcon="@mipmap/ic_launcher"
-                android:usesCleartextTraffic="true">
-                <activity
-                    android:name=".MainActivity"
-                    android:exported="true"
-                    android:theme="@style/AppTheme">
-                    <intent-filter>
-                        <action android:name="android.intent.action.MAIN" />
-                        <category android:name="android.intent.category.LAUNCHER" />
-                    </intent-filter>
-                </activity>
-            </application>
-        </manifest>
-        EOF
+      - name: Create Android Project Files
+        run: |
+          mkdir -p app/src/main/java/com/annawa/jadwal
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/mipmap-hdpi
+          mkdir -p gradle/wrapper
 
-        # MainActivity.java (WebView Online/Offline, Print & PDF Support)
-        cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
-        package com.annawa.jadwal;
-        import android.app.Activity;
-        import android.content.Intent;
-        import android.net.Uri;
-        import android.os.Bundle;
-        import android.webkit.DownloadListener;
-        import android.webkit.WebChromeClient;
-        import android.webkit.WebSettings;
-        import android.webkit.WebView;
-        import android.webkit.WebViewClient;
-        import android.widget.Toast;
+          # Ikon aplikasi: gunakan logo.png jika tersedia
+          ICON_REF="@android:drawable/sym_def_app_icon"
 
-        public class MainActivity extends Activity {
-            private WebView webView;
+          if [ -f logo.png ]; then
+            cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png
+            ICON_REF="@mipmap/ic_launcher"
+          fi
 
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                webView = new WebView(this);
-                
-                WebSettings settings = webView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                settings.setDatabaseEnabled(true);
-                settings.setCacheMode(WebSettings.LOAD_DEFAULT);
-                settings.setAllowFileAccess(true);
-                settings.setJavaScriptCanOpenWindowsAutomatically(true);
-                
-                webView.setWebViewClient(new WebViewClient());
-                webView.setWebChromeClient(new WebChromeClient());
+          # Tema aplikasi
+          cat << 'EOF' > app/src/main/res/values/styles.xml
+          <resources>
+              <style name="AppTheme" parent="android:Theme.NoTitleBar">
+                  <item name="android:windowFullscreen">false</item>
+                  <item name="android:windowActionModeOverlay">true</item>
+              </style>
+          </resources>
+          EOF
 
-                webView.setDownloadListener(new DownloadListener() {
-                    @Override
-                    public void downloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        try {
-                            startActivity(intent);
-                        } catch (Exception e) {
-                            Toast.makeText(MainActivity.this, "Gagal mengunduh file", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+          # Manifest Android
+          cat << EOF > app/src/main/AndroidManifest.xml
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              package="com.annawa.jadwal">
 
-                webView.loadUrl("https://gunan-awa.github.io/jadwal/");
-                setContentView(webView);
-            }
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-            @Override
-            public void onBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack();
-                } else {
-                    super.onBackPressed();
-                }
-            }
-        }
-        EOF
+              <application
+                  android:label="Jadwal An-Nawa"
+                  android:icon="${ICON_REF}"
+                  android:roundIcon="${ICON_REF}"
+                  android:usesCleartextTraffic="true"
+                  android:hardwareAccelerated="true">
 
-        # Konfigurasi Gradle Standar
-        cat << 'EOF' > build.gradle
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:7.4.2'
-            }
-        }
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
-        EOF
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true"
+                      android:theme="@style/AppTheme"
+                      android:configChanges="orientation|screenSize|keyboardHidden">
 
-        cat << 'EOF' > settings.gradle
-        include ':app'
-        rootProject.name = "Jadwal AnNawa"
-        EOF
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
 
-        cat << 'EOF' > app/build.gradle
-        plugins {
-            id 'com.android.application'
-        }
-        android {
-            namespace 'com.annawa.jadwal'
-            compileSdk 33
-            defaultConfig {
-                applicationId "com.annawa.jadwal"
-                minSdk 21
-                targetSdk 33
-                versionCode 14
-                versionName "2.3"
-            }
-        }
-        EOF
+                  </activity>
+              </application>
+          </manifest>
+          EOF
 
-        # Buat file properti gradle wrapper agar runner tidak error mencari file pembungkus
-        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        EOF
+          # MainActivity.java
+          cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
+          package com.annawa.jadwal;
 
-        gradle wrapper --gradle-version 7.5 --distribution-type bin || true
-        chmod +x ./gradlew || true
+          import android.app.Activity;
+          import android.content.Intent;
+          import android.net.Uri;
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import android.webkit.DownloadListener;
+          import android.webkit.WebChromeClient;
+          import android.webkit.WebSettings;
+          import android.webkit.WebView;
+          import android.webkit.WebViewClient;
+          import android.print.PrintManager;
+          import android.print.PrintDocumentAdapter;
+          import android.print.PrintAttributes;
+          import android.widget.Toast;
 
-    - name: Build APK menggunakan Gradle
-      run: ./gradlew assembleDebug --no-daemon
+          public class MainActivity extends Activity {
 
-    - name: Unggah APK An-Nawa
-      uses: actions/upload-artifact@v4
-      with:
-        name: Jadwal-AnNawa-Ringan
-        path: app/build/outputs/apk/debug/*.apk
+              private WebView webView;
+
+              @Override
+              protected void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+
+                  webView = new WebView(this);
+
+                  WebSettings settings = webView.getSettings();
+                  settings.setJavaScriptEnabled(true);
+                  settings.setDomStorageEnabled(true);
+                  settings.setDatabaseEnabled(true);
+                  settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+                  settings.setAllowFileAccess(true);
+                  settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                  settings.setLoadsImagesAutomatically(true);
+
+                  webView.addJavascriptInterface(
+                      new PrintBridge(),
+                      "AndroidPrint"
+                  );
+
+                  webView.setWebViewClient(new WebViewClient() {
+
+                      @Override
+                      public void onPageFinished(WebView view, String url) {
+                          super.onPageFinished(view, url);
+
+                          // Hubungkan tombol window.print() ke cetak Android
+                          view.evaluateJavascript(
+                              "window.print = function() {" +
+                              "  AndroidPrint.print();" +
+                              "};",
+                              null
+                          );
+                      }
+                  });
+
+                  webView.setWebChromeClient(new WebChromeClient());
+
+                  webView.setDownloadListener(new DownloadListener() {
+                      @Override
+                      public void onDownloadStart(
+                          String url,
+                          String userAgent,
+                          String contentDisposition,
+                          String mimeType,
+                          long contentLength
+                      ) {
+                          try {
+                              Intent intent = new Intent(
+                                  Intent.ACTION_VIEW,
+                                  Uri.parse(url)
+                              );
+                              startActivity(intent);
+                          } catch (Exception e) {
+                              Toast.makeText(
+                                  MainActivity.this,
+                                  "Tidak dapat membuka file unduhan",
+                                  Toast.LENGTH_LONG
+                              ).show();
+                          }
+                      }
+                  });
+
+                  setContentView(webView);
+
+                  webView.loadUrl(
+                      "https://gunan-awa.github.io/jadwal/"
+                  );
+              }
+
+              // Fitur cetak dan simpan sebagai PDF
+              private void printWebPage() {
+                  try {
+                      PrintManager printManager =
+                          (PrintManager) getSystemService(PRINT_SERVICE);
+
+                      PrintDocumentAdapter adapter =
+                          webView.createPrintDocumentAdapter(
+                              "Jadwal-AnNawa"
+                          );
+
+                      PrintAttributes attributes =
+                          new PrintAttributes.Builder()
+                              .setMediaSize(
+                                  PrintAttributes.MediaSize.ISO_A4
+                              )
+                              .setColorMode(
+                                  PrintAttributes.COLOR_MODE_COLOR
+                              )
+                              .build();
+
+                      printManager.print(
+                          "Jadwal An-Nawa",
+                          adapter,
+                          attributes
+                      );
+
+                  } catch (Exception e) {
+                      Toast.makeText(
+                          MainActivity.this,
+                          "Gagal membuka fitur cetak",
+                          Toast.LENGTH_LONG
+                      ).show();
+                  }
+              }
+
+              // Jembatan JavaScript ke Android
+              public class PrintBridge {
+
+                  @JavascriptInterface
+                  public void print() {
+                      runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              printWebPage();
+                          }
+                      });
+                  }
+              }
+
+              @Override
+              public void onBackPressed() {
+                  if (webView != null && webView.canGoBack()) {
+                      webView.goBack();
+                  } else {
+                      super.onBackPressed();
+                  }
+              }
+
+              @Override
+              protected void onDestroy() {
+                  if (webView != null) {
+                      webView.destroy();
+                      webView = null;
+                  }
+                  super.onDestroy();
+              }
+          }
+          EOF
+
+          # Konfigurasi Gradle utama
+          cat << 'EOF' > build.gradle
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:7.4.2'
+              }
+          }
+
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          EOF
+
+          # Pengaturan project
+          cat << 'EOF' > settings.gradle
+          pluginManagement {
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+              }
+          }
+
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+
+          rootProject.name = "Jadwal AnNawa"
+          include ':app'
+          EOF
+
+          # Konfigurasi aplikasi
+          cat << 'EOF' > app/build.gradle
+          plugins {
+              id 'com.android.application'
+          }
+
+          android {
+              namespace 'com.annawa.jadwal'
+              compileSdk 33
+
+              defaultConfig {
+                  applicationId "com.annawa.jadwal"
+                  minSdk 21
+                  targetSdk 33
+                  versionCode 14
+                  versionName "2.3"
+              }
+          }
+          EOF
+
+          # Gradle Wrapper
+          gradle wrapper --gradle-version 7.5 --distribution-type bin
+          chmod +x ./gradlew
+
+      - name: Build APK An-Nawa
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK An-Nawa
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jadwal-AnNawa-Ringan
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
