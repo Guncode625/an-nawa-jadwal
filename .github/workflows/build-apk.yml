@@ -1,4 +1,4 @@
-name: Buat APK Otomatis
+name: Buat APK Ringan (Gradle Native)
 
 on:
   push:
@@ -19,82 +19,133 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Kompilasi Flutter & Muat Situs Jadwal Asli
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.19.0'
-        channel: 'stable'
-        cache: true
-
-    - name: Konfigurasi Proyek, WebView & Integrasi AdMob
+    - name: Rangkai Struktur Proyek APK Ringan
       run: |
-        # Buat kerangka proyek Flutter
-        flutter create . --org com.annawa --project-name jadwal_annawa --platforms android
+        # Bersihkan direktori jika ada sisa file flutter sebelumnya
+        rm -rf android ios lib web build .dart_tool pubspec.yaml 2>/dev/null || true
 
-        # Pastikan folder assets ada dan salin file web serta database asli Ustadz
-        mkdir -p android/app/src/main/assets
-        cp index.html android/app/src/main/assets/index.html
-        cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
+        # Buat struktur direktori Android standar
+        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
 
-        # Tambahkan dependensi webview_flutter dan google_mobile_ads di pubspec.yaml
-        sed -i '/dependencies:/a \  webview_flutter: ^4.7.0\n  google_mobile_ads: ^5.1.0' pubspec.yaml
-        flutter pub get
+        # Salin file web utama dan database ke assets
+        cp index.html app/src/main/assets/
+        cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
-        # Paksa set minSdk langsung ke 21 dengan menimpa baris defaultConfig di android/app/build.gradle
-        sed -i 's/minSdk.*/minSdk 21/g' android/app/build.gradle
-        sed -i 's/minSdkVersion.*/minSdkVersion 21/g' android/app/build.gradle
+        # 1. AndroidManifest.xml (Termasuk App ID AdMob)
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.annawa.jadwal">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <application
+                android:allowBackup="true"
+                android:label="Jadwal An-Nawa"
+                android:usesCleartextTraffic="true">
+                
+                <!-- AdMob App ID -->
+                <meta-data
+                    android:name="com.google.android.gms.ads.APPLICATION_ID"
+                    android:value="ca-app-pub-3143680001009952~1205948994"/>
 
-        # Sisipkan App ID AdMob ke AndroidManifest.xml
-        MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
-        if [ -f "$MANIFEST_PATH" ]; then
-          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>\n</application>|g' "$MANIFEST_PATH"
-        fi
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
 
-        # Timpa file lib/main.dart agar langsung memuat file index.html offline milik pesantren
-        cat << 'EOF' > lib/main.dart
-        import 'package:flutter/material.dart';
-        import 'package:webview_flutter/webview_flutter.dart';
+        # 2. MainActivity.java (WebView Lokal berukuran sangat kecil)
+        cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
+        package com.annawa.jadwal;
+        import android.app.Activity;
+        import android.os.Bundle;
+        import android.webkit.WebSettings;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
 
-        void main() {
-          runApp(const MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: JadwalApp(),
-          ));
-        }
+        public class MainActivity extends Activity {
+            private WebView webView;
 
-        class JadwalApp extends StatefulWidget {
-          const JadwalApp({super.key});
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                webView = new WebView(this);
+                WebSettings settings = webView.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setAllowFileAccess(true);
+                settings.setAllowContentAccess(true);
+                
+                webView.setWebViewClient(new WebViewClient());
+                webView.loadUrl("file:///android_asset/index.html");
+                setContentView(webView);
+            }
 
-          @override
-          State<JadwalApp> createState() => _JadwalAppState();
-        }
-
-        class _JadwalAppState extends State<JadwalApp> {
-          late final WebViewController controller;
-
-          @override
-          void initState() {
-            super.initState();
-            controller = WebViewController()
-              ..setJavaScriptMode(JavaScriptMode.unrestricted)
-              ..loadFlutterAsset('assets/index.html');
-          }
-
-          @override
-          Widget build(BuildContext context) {
-            return Scaffold(
-              body: SafeArea(
-                child: WebViewWidget(controller: controller),
-              ),
-            );
-          }
+            @Override
+            public void onBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    super.onBackPressed();
+                }
+            }
         }
         EOF
 
-        flutter build apk --debug
+        # 3. Konfigurasi Gradle
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:7.4.2'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
 
-    - name: Unggah APK Asli Jadwal An-Nawa
+        cat << 'EOF' > settings.gradle
+        include ':app'
+        rootProject.name = "Jadwal AnNawa"
+        EOF
+
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.annawa.jadwal'
+            compileSdk 33
+            defaultConfig {
+                applicationId "com.annawa.jadwal"
+                minSdk 21
+                targetSdk 33
+                versionCode 1
+                versionName "1.0"
+            }
+        }
+        EOF
+
+        gradle wrapper --gradle-version 7.5
+
+    - name: Build APK Ringan via Gradle
+      run: |
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --no-daemon
+
+    - name: Unggah APK Ringan An-Nawa
       uses: actions/upload-artifact@v4
       with:
-        name: Jadwal-AnNawa-Asli-Debug
-        path: build/app/outputs/flutter-apk/app-debug.apk
+        name: Jadwal-AnNawa-Ringan
+        path: app/build/outputs/apk/debug/*.apk
