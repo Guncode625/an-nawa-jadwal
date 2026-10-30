@@ -30,8 +30,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK Components
+      - name: Install Android SDK Components & Accept Licenses
         run: |
+          yes | sdkmanager --licenses || true
           sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
       - name: Create Android Project Files
@@ -90,7 +91,7 @@ jobs:
           </manifest>
           EOF
 
-          # MainActivity.java (Sudah diperbaiki tanpa ada baris yang terpotong)
+          # MainActivity.java
           cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
           package com.annawa.jadwal;
 
@@ -304,8 +305,8 @@ jobs:
                   applicationId "com.annawa.jadwal"
                   minSdk 21
                   targetSdk 33
-                  versionCode 15
-                  versionName "2.4"
+                  versionCode 16
+                  versionName "2.5"
               }
           }
           EOF
