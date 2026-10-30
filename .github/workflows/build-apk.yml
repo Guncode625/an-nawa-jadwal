@@ -34,21 +34,22 @@ jobs:
         cp logo.png app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
         cp logo.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
 
-        # Buat file tema styles.xml agar bilah judul hitam di atas hilang total (Fullscreen / NoActionBar)
+        # Tema agar bilah judul hitam di atas hilang total (Fullscreen / NoActionBar)
         cat << 'EOF' > app/src/main/res/values/styles.xml
         <resources>
-            <style name="AppTheme" parent="android:Theme.NoTitleBar.Fullscreen">
-                <item name="android:windowFullscreen">true</item>
+            <style name="AppTheme" parent="android:Theme.NoTitleBar">
+                <item name="android:windowFullscreen">false</item>
             </style>
         </resources>
         EOF
 
-        # 1. AndroidManifest.xml (Menerapkan Tema Tanpa Judul & Izin Lengkap)
+        # 1. AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.annawa.jadwal">
             <uses-permission android:name="android.permission.INTERNET" />
             <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
             <application
                 android:allowBackup="true"
                 android:label="Jadwal An-Nawa"
@@ -75,7 +76,7 @@ jobs:
         </manifest>
         EOF
 
-        # 2. MainActivity.java (WebView Online/Offline Hybrid & Dukungan Cetak/PDF)
+        # 2. MainActivity.java (WebView Hybrid Modern yang Stabil & Bisa Online/Offline)
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -101,7 +102,6 @@ jobs:
                 settings.setJavaScriptEnabled(true);
                 settings.setDomStorageEnabled(true);
                 settings.setDatabaseEnabled(true);
-                settings.setAppCacheEnabled(true);
                 settings.setCacheMode(WebSettings.LOAD_DEFAULT);
                 settings.setAllowFileAccess(true);
                 settings.setJavaScriptCanOpenWindowsAutomatically(true);
@@ -137,7 +137,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle murni versi stabil
+        # 3. Konfigurasi Gradle Stabil
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -172,13 +172,12 @@ jobs:
                 applicationId "com.annawa.jadwal"
                 minSdk 21
                 targetSdk 33
-                versionCode 5
-                versionName "1.4"
+                versionCode 7
+                versionName "1.6"
             }
         }
         EOF
 
-        # Jalankan gradle wrapper atau gradle langsung
         gradle wrapper --gradle-version 7.5
         chmod +x ./gradlew
         ./gradlew assembleDebug --no-daemon
