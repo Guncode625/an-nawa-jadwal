@@ -1019,7 +1019,8 @@ function getPiketTeacherNames() {
     });
   });
   return uniqueSorted(names);
-}/* PERHITUNGAN PIKET STABIL TANPA MENGUBAH STRUKTUR LAIN */
+}
+/* PERHITUNGAN PIKET FINAL 100% SESUAI STRUKTUR BARIS KBM PESANTREN */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1034,9 +1035,32 @@ function countTeacherPiket(teacherName) {
       hari.includes(normalizeDay(header))
     );
 
-    state.piket.forEach(row => {
+    // Iterasi setiap baris data piket
+    state.piket.forEach((row, rowIndex) => {
       if (!row) return;
 
+      const barisTeks = normalize(Object.values(row).join(" "));
+      const isJumat = barisTeks.includes("jumat");
+
+      // TENTUKAN BOBOT JP BERDASARKAN POSISI BARIS (rowIndex 0 adalah baris 1):
+      let bobotPerSel = 0;
+
+      if (rowIndex === 3 || rowIndex === 6) {
+        // Baris 4 & 7 (Istirahat 1 & 2) -> Diabaikan (0 JP)
+        return;
+      } else if (rowIndex === 9) {
+        // Baris 10 (Jam ke-7) -> Selalu 1 JP untuk semua hari
+        bobotPerSel = 1;
+      } else if (rowIndex === 7 || rowIndex === 8) {
+        // Baris 8 & 9 (Jam ke-5 & Jam ke-6)
+        // Jika Jumat = 1 JP, selain Jumat (Senin-Kamis/Sabtu) = 2 JP penuh
+        bobotPerSel = isJumat ? 1 : 2;
+      } else {
+        // Baris 2, 3, 5, 6 (Jam 1, 2, 3, 4) -> Selalu 2 JP penuh
+        bobotPerSel = 2;
+      }
+
+      // Hitung kemunculan nama ustadz di kolom hari (Senin s.d. Sabtu)
       kolomHari.forEach(header => {
         let cellStr = clean(row[header]);
         if (!cellStr) return;
@@ -1052,7 +1076,7 @@ function countTeacherPiket(teacherName) {
 
         names.forEach(name => {
           if (name === wanted) {
-            totalJpPiket += 1;
+            totalJpPiket += bobotPerSel;
           }
         });
       });
