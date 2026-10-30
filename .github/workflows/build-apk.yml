@@ -16,33 +16,68 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Java JDK 17
+      - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle 7.5
+      # SETUP GRADLE
+      - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '7.5'
 
-      - name: Buat Struktur File dan Direktori APK
+      # SETUP ANDROID SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      # INSTALL ANDROID SDK
+      - name: Install Android SDK Components
+        shell: bash
         run: |
+          set -e
+
+          echo "Memeriksa Android SDK..."
+
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+          sdkmanager --version
+
+          echo "Menerima lisensi Android SDK..."
+          yes | sdkmanager --licenses || true
+
+          echo "Menginstal Android SDK 34..."
+          sdkmanager --install "platforms;android-34"
+
+          echo "Menginstal Build Tools 34..."
+          sdkmanager --install "build-tools;34.0.0"
+
+          echo "Memeriksa hasil instalasi..."
+
+          test -d "$ANDROID_HOME/platforms/android-34"
+          test -d "$ANDROID_HOME/build-tools/34.0.0"
+
+          echo "ANDROID SDK BERHASIL DIINSTAL"
+
+      # MEMBUAT STRUKTUR FILE
+      - name: Buat Struktur File APK
+        shell: bash
+        run: |
+          set -e
+
           mkdir -p app/src/main/java/com/annawa/jadwal
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/res/mipmap-hdpi
           mkdir -p gradle/wrapper
 
-          # Cek dan salin logo.png sebagai ikon aplikasi
           if [ -f logo.png ]; then
             cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png
-            echo "Logo pesantren berhasil disalin sebagai ikon aplikasi."
-          else
-            echo "Peringatan: logo.png tidak ditemukan, menggunakan ikon default."
+            echo "Logo berhasil disalin."
           fi
 
-          # 1. Tema Tampilan (Tanpa Bilah Judul Hitam / Fullscreen Bersih)
+          # STYLES
           cat << 'EOF' > app/src/main/res/values/styles.xml
           <resources>
               <style name="AppTheme" parent="android:Theme.NoTitleBar">
@@ -52,7 +87,7 @@ jobs:
           </resources>
           EOF
 
-          # 2. AndroidManifest.xml
+          # ANDROID MANIFEST
           cat << 'EOF' > app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               package="com.annawa.jadwal">
@@ -83,7 +118,7 @@ jobs:
           </manifest>
           EOF
 
-          # 3. MainActivity.java (WebView Lengkap dengan Print, PDF & Download Support)
+          # MAIN ACTIVITY
           cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
           package com.annawa.jadwal;
 
@@ -103,11 +138,13 @@ jobs:
           import android.widget.Toast;
 
           public class MainActivity extends Activity {
+
               private WebView webView;
 
               @Override
               protected void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
+
                   webView = new WebView(this);
 
                   WebSettings settings = webView.getSettings();
@@ -119,12 +156,16 @@ jobs:
                   settings.setJavaScriptCanOpenWindowsAutomatically(true);
                   settings.setLoadsImagesAutomatically(true);
 
-                  webView.addJavascriptInterface(new PrintBridge(), "AndroidPrint");
+                  webView.addJavascriptInterface(
+                      new PrintBridge(),
+                      "AndroidPrint"
+                  );
 
                   webView.setWebViewClient(new WebViewClient() {
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
+
                           view.evaluateJavascript(
                               "window.print = function() { AndroidPrint.print(); };",
                               null
@@ -136,35 +177,69 @@ jobs:
 
                   webView.setDownloadListener(new DownloadListener() {
                       @Override
-                      public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                      public void onDownloadStart(
+                          String url,
+                          String userAgent,
+                          String contentDisposition,
+                          String mimeType,
+                          long contentLength
+                      ) {
                           try {
-                              Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                              Intent intent = new Intent(
+                                  Intent.ACTION_VIEW,
+                                  Uri.parse(url)
+                              );
+
                               startActivity(intent);
+
                           } catch (Exception e) {
-                              Toast.makeText(MainActivity.this, "Tidak dapat membuka file unduhan", Toast.LENGTH_LONG).show();
+                              Toast.makeText(
+                                  MainActivity.this,
+                                  "Tidak dapat membuka file unduhan",
+                                  Toast.LENGTH_LONG
+                              ).show();
                           }
                       }
                   });
 
                   setContentView(webView);
-                  webView.loadUrl("https://gunan-awa.github.io/jadwal/");
+
+                  webView.loadUrl(
+                      "https://gunan-awa.github.io/jadwal/"
+                  );
               }
 
               private void printWebPage() {
                   try {
-                      PrintManager printManager = (PrintManager) getSystemService(PRINT_SERVICE);
-                      PrintDocumentAdapter adapter = webView.createPrintDocumentAdapter("Jadwal-AnNawa");
-                      PrintAttributes attributes = new PrintAttributes.Builder()
+                      PrintManager printManager =
+                          (PrintManager) getSystemService(PRINT_SERVICE);
+
+                      PrintDocumentAdapter adapter =
+                          webView.createPrintDocumentAdapter("Jadwal-AnNawa");
+
+                      PrintAttributes attributes =
+                          new PrintAttributes.Builder()
                               .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
                               .setColorMode(PrintAttributes.COLOR_MODE_COLOR)
                               .build();
-                      printManager.print("Jadwal An-Nawa", adapter, attributes);
+
+                      printManager.print(
+                          "Jadwal An-Nawa",
+                          adapter,
+                          attributes
+                      );
+
                   } catch (Exception e) {
-                      Toast.makeText(MainActivity.this, "Gagal membuka fitur cetak", Toast.LENGTH_LONG).show();
+                      Toast.makeText(
+                          MainActivity.this,
+                          "Gagal membuka fitur cetak",
+                          Toast.LENGTH_LONG
+                      ).show();
                   }
               }
 
               public class PrintBridge {
+
                   @JavascriptInterface
                   public void print() {
                       runOnUiThread(new Runnable() {
@@ -191,22 +266,25 @@ jobs:
                       webView.destroy();
                       webView = null;
                   }
+
                   super.onDestroy();
               }
           }
           EOF
 
-          # 4. Konfigurasi Gradle Utama
+          # ROOT BUILD GRADLE
           cat << 'EOF' > build.gradle
           buildscript {
               repositories {
                   google()
                   mavenCentral()
               }
+
               dependencies {
                   classpath 'com.android.tools.build:gradle:7.4.2'
               }
           }
+
           allprojects {
               repositories {
                   google()
@@ -215,7 +293,7 @@ jobs:
           }
           EOF
 
-          # 5. Settings Gradle
+          # SETTINGS GRADLE
           cat << 'EOF' > settings.gradle
           pluginManagement {
               repositories {
@@ -224,42 +302,42 @@ jobs:
                   gradlePluginPortal()
               }
           }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
+
           rootProject.name = "Jadwal AnNawa"
+
           include ':app'
           EOF
 
-          # 6. App Gradle (Menggunakan compileSdk 34 agar otomatis mendownload SDK terbaru dengan mulus)
+          # APP BUILD GRADLE
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
           }
+
           android {
               namespace 'com.annawa.jadwal'
               compileSdk 34
+
               defaultConfig {
                   applicationId "com.annawa.jadwal"
                   minSdk 21
                   targetSdk 34
-                  versionCode 19
-                  versionName "2.8"
+                  versionCode 20
+                  versionName "2.9"
               }
           }
           EOF
 
-          # Inisialisasi Gradle Wrapper
+          # GRADLE WRAPPER
           gradle wrapper --gradle-version 7.5 --distribution-type bin
+
           chmod +x ./gradlew
 
+      # BUILD APK
       - name: Build APK An-Nawa
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
 
+      # UPLOAD APK
       - name: Unggah APK An-Nawa
         uses: actions/upload-artifact@v4
         with:
