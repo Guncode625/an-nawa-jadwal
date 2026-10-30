@@ -137,7 +137,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle Standar Tanpa Wrapper
+        # 3. Konfigurasi Gradle Standar Menggunakan Versi Android Plugin yang Stabil
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -145,7 +145,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath 'com.android.tools.build:gradle:7.4.2'
             }
         }
         allprojects {
@@ -172,21 +172,20 @@ jobs:
                 applicationId "com.annawa.jadwal"
                 minSdk 21
                 targetSdk 33
-                versionCode 9
-                versionName "1.8"
+                versionCode 10
+                versionName "1.9"
             }
         }
         EOF
 
-        # Kompilasi langsung menggunakan sdkmanager / gradle system command
-        sdkmanager "platforms;android-33" "build-tools;33.0.2" || true
-        
-        # Buat dummy gradlew script mandiri agar tidak error
-        echo '#!/usr/bin/env sh' > gradlew
-        echo 'gradle assembleDebug --no-daemon' >> gradlew
-        chmod +x gradlew
-        
-        ./gradlew
+        # Otomatis terima lisensi SDK dan unduh komponen build-tools yang dibutuhkan server
+        yes | sdkmanager --licenses || true
+        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" || true
+
+        # Inisialisasi wrapper secara manual agar gradle bisa berjalan di server ubuntu
+        gradle wrapper --gradle-version 7.5
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --no-daemon
 
     - name: Unggah APK Ringan An-Nawa
       uses: actions/upload-artifact@v4
