@@ -1021,9 +1021,9 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 /* PERHITUNGAN BEBAN PIKET FINAL & AKURAT:
+   - Jumat jam ke-5 (berbagi tugas / 2 nama) = 1 JP
    - Jam ke-7 (semua hari) = 1 JP
-   - Jumat jam ke-5 = 1 JP
-   - Jam piket standar lainnya = 2 JP penuh
+   - Sesi jam piket standar lainnya = 2 JP penuh
 */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
