@@ -90,7 +90,7 @@ jobs:
           </manifest>
           EOF
 
-          # MainActivity.java
+          # MainActivity.java (Sudah diperbaiki tanpa ada baris yang terpotong)
           cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
           package com.annawa.jadwal;
 
@@ -134,12 +134,9 @@ jobs:
                   );
 
                   webView.setWebViewClient(new WebViewClient() {
-
                       @Override
                       public void onPageFinished(WebView view, String url) {
                           super.onPageFinished(view, url);
-
-                          // Hubungkan tombol window.print() ke cetak Android
                           view.evaluateJavascript(
                               "window.print = function() {" +
                               "  AndroidPrint.print();" +
@@ -183,7 +180,6 @@ jobs:
                   );
               }
 
-              // Fitur cetak dan simpan sebagai PDF
               private void printWebPage() {
                   try {
                       PrintManager printManager =
@@ -219,9 +215,7 @@ jobs:
                   }
               }
 
-              // Jembatan JavaScript ke Android
               public class PrintBridge {
-
                   @JavascriptInterface
                   public void print() {
                       runOnUiThread(new Runnable() {
@@ -310,8 +304,8 @@ jobs:
                   applicationId "com.annawa.jadwal"
                   minSdk 21
                   targetSdk 33
-                  versionCode 14
-                  versionName "2.3"
+                  versionCode 15
+                  versionName "2.4"
               }
           }
           EOF
