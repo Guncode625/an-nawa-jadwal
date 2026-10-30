@@ -1022,100 +1022,59 @@ function getPiketTeacherNames() {
 }
 
 
-/* PERHITUNGAN BEBAN JP PIKET */
+
+/* PERHITUNGAN PIKET BERDASARKAN SETIAP NAMA PETUGAS (1 NAMA = 1 JP) */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
-  if (!wanted) return 0;
+  if(!wanted) return 0;
 
   let totalJpPiket = 0;
 
   try {
-    if (!state.piket || !state.piket.length) return 0;
+    if (!state || !state.piket || !state.piket.length) return 0;
 
-    // Cari kolom Jam Ke
-    const jamKeHeader = state.piketHeaders.find(header =>
-      ["jamke", "jp", "jam"].includes(normalize(header))
+    const hari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+    // Ambil hanya kolom hari, bukan kolom Jam Ke atau Waktu
+    const kolomHari = state.piketHeaders.filter(header =>
+      hari.includes(normalizeDay(header))
     );
-
-    if (!jamKeHeader) {
-      console.warn("Kolom Jam Ke tidak ditemukan.");
-      return 0;
-    }
-
-    // Cari kolom hari
-    const daftarHari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-    const kolomHari = state.piketHeaders
-      .map(header => ({
-        header,
-        hari: normalizeDay(header)
-      }))
-      .filter(item => daftarHari.includes(item.hari));
-
-    // Ambil nama utama dan nama dalam tanda kurung
-    function ambilNamaPiket(value) {
-      if (!value) return [];
-
-      const teks = String(value)
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<[^>]*>/g, "")
-        .replace(/\(/g, "\n")
-        .replace(/\)/g, "\n");
-
-      return teks
-        .split(/[\n,;]+/)
-        .map(nama => nama.trim())
-        .filter(Boolean);
-    }
 
     state.piket.forEach(row => {
       if (!row) return;
 
-      const jamKe = periodNumber(row[jamKeHeader]);
+      kolomHari.forEach(header => {
+        let cellStr = clean(row[header]);
 
-      // Lewati baris istirahat dan baris di luar jam 1-7
-      if (jamKe < 1 || jamKe > 7) return;
+        if (!cellStr) return;
 
-      kolomHari.forEach(item => {
-        const namaPetugas = ambilNamaPiket(row[item.header]);
+        // Samakan format baris baru dari Excel dan HTML
+        cellStr = cellStr
+          .replace(/<br\s*\/?>/gi, "\n")
+          .replace(/[()]/g, "\n");
 
-        if (!namaPetugas.length) return;
-
-        const namaValid = namaPetugas
-          .map(nama => normalize(nama))
+        // Pisahkan setiap nama petugas
+        const names = cellStr
+          .split(/\r?\n|,|;|\/|&|\bdan\b/i)
+          .map(name => normalize(name))
           .filter(Boolean);
 
-        if (!namaValid.includes(wanted)) return;
-
-        // Jam ke-7 selalu 1 JP
-        if (jamKe === 7) {
-          totalJpPiket += 1;
-        }
-        // Jumat jam ke-5 selalu 1 JP
-        else if (item.hari === "Jumat" && jamKe === 5) {
-          totalJpPiket += 1;
-        }
-        // Jika ada dua nama dalam satu sel, masing-masing 1 JP
-        else if (namaValid.length > 1) {
-          totalJpPiket += 1;
-        }
-        // Nama tunggal pada jam 1-6 mendapat 2 JP
-        else {
-          totalJpPiket += 2;
-        }
+        // Setiap nama yang cocok dihitung 1 JP
+        names.forEach(name => {
+          if (name === wanted) {
+            totalJpPiket += 1;
+          }
+        });
       });
     });
 
-  } catch (e) {
-    console.error("Error menghitung JP piket:", e);
+  } catch(e) {
+    console.error("Error hitung piket:", e);
   }
 
   return totalJpPiket;
 }
 
-
-  return totalJpPiket;
-}
   
 function renderClassSchedule() {
   if(!state.loaded) return;
