@@ -1020,7 +1020,11 @@ function getPiketTeacherNames() {
   });
   return uniqueSorted(names);
 }
-/* PERHITUNGAN BEBAN PIKET BERDASARKAN ATURAN KHUSUS */
+/* PERHITUNGAN BEBAN PIKET: 
+   - Jam 1 s.d. 6 (selain Jumat jam 5) = 2 JP
+   - Jumat Jam ke-5 (ada 2 nama/berbagi tugas) = 1 JP
+   - Jam ke-7 (ada 2 nama/berbagi tugas) = 1 JP 
+*/
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1040,15 +1044,15 @@ function countTeacherPiket(teacherName) {
     });
 
     if (guruDiBarisIni) {
-      // Aturan khusus Jumat jam ke-5 = 1 JP
+      // Aturan khusus Jumat jam ke-5 (dihitung 1 JP karena 2 orang berbagi tugas)
       if (hariBaris === "jumat" && jpBaris.includes("5")) {
         totalJpPiket += 1;
       } 
-      // Aturan khusus jam ke-7 = 1 JP
+      // Khusus Jam ke-7 (dihitung 1 JP karena 2 orang berbagi tugas)
       else if (jpBaris.includes("7")) {
         totalJpPiket += 1;
       } 
-      // Sesi jam piket standar lainnya = 2 JP
+      // Sesi jam piket standar lainnya dihitung 2 JP penuh
       else {
         totalJpPiket += 2;
       }
