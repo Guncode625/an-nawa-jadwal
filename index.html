@@ -1020,11 +1020,10 @@ function getPiketTeacherNames() {
   });
   return uniqueSorted(names);
 }
-/* PERHITUNGAN BEBAN PIKET:
-   - Jumat Jam ke-5 = 1 JP
+/* PERHITUNGAN BEBAN PIKET (FINAL & AKURAT):
+   - Jumat jam ke-5 = 1 JP
    - Jam ke-7 (semua hari) = 1 JP
-   - Jam ke-5 di hari biasa (Senin-Sabtu selain Jumat) = 2 JP
-   - Sesi standar lainnya = 2 JP
+   - Jam piket standar lainnya = 2 JP
 */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
@@ -1032,6 +1031,8 @@ function countTeacherPiket(teacherName) {
   let totalJpPiket = 0;
 
   state.piket.forEach(row => {
+    // Gabungkan teks dari kolom Hari dan JP untuk mendeteksi dengan pasti
+    const barisTeksGabung = normalize(Object.values(row).join(" "));
     const hariBaris = normalize(row["Hari"] || row["hari"] || "");
     const jpBaris = String(row["JP"] || row["jp"] || row["Jam"] || row["jam"] || "");
     
@@ -1045,17 +1046,16 @@ function countTeacherPiket(teacherName) {
     });
 
     if (guruDiBarisIni) {
-      // 1. Khusus Jumat jam ke-5 = 1 JP
-      if (hariBaris === "jumat" && jpBaris === "5") {
-        totalJpPiket += 1;
-      } 
-      // 2. Jam ke-7 di hari apa pun = 1 JP
-      else if (jpBaris === "7") {
-        totalJpPiket += 1;
-      } 
-      // 3. Jam ke-5 di hari selain Jumat (atau jam 1-6 lainnya) = 2 JP penuh
-      else {
-        totalJpPiket += 2;
+      // Cek apakah ini hari Jumat dan mengandung jam ke-5
+      const isJumatJam5 = (hariBaris.includes("jumat") || barisTeksGabung.includes("jumat")) && jpBaris.includes("5");
+      
+      // Cek apakah ini jam ke-7 (di hari apa pun)
+      const isJam7 = jpBaris.includes("7");
+
+      if (isJumatJam5 || isJam7) {
+        totalJpPiket += 1; // Dihitung 1 JP
+      } else {
+        totalJpPiket += 2; // Jam standar lainnya dihitung 2 JP penuh
       }
     }
   });
