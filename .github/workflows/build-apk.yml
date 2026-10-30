@@ -22,6 +22,10 @@ jobs:
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
 
+    - name: Install Build Tools & Platform
+      run: |
+        echo "y" | sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
     - name: Buat Struktur Proyek Android Native
       run: |
         mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
