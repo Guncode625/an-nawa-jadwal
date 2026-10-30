@@ -27,7 +27,7 @@ jobs:
         with:
           gradle-version: '7.5'
 
-            - name: Setup Android SDK
+       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK Components
@@ -256,6 +256,7 @@ jobs:
           }
           rootProject.name = "Jadwal AnNawa"
           include ':app'
+          EOF
 
           # 6. App Gradle
           cat << 'EOF' > app/build.gradle
