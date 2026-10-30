@@ -19,10 +19,10 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Set up Gradle Environment
-      uses: gradle/actions/setup-gradle@v3
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
 
-    - name: Rangkai Struktur Proyek Android
+    - name: Rangkai Struktur Proyek & Build APK
       run: |
         mkdir -p app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap-hdpi
 
@@ -158,18 +158,16 @@ jobs:
                 applicationId "com.annawa.jadwal"
                 minSdk 21
                 targetSdk 33
-                versionCode 12
-                versionName "2.1"
+                versionCode 13
+                versionName "2.2"
             }
         }
         EOF
 
-        # Buat gradlew mandiri agar bisa langsung mengeksekusi build
+        # Inisialisasi gradle wrapper secara bersih
         gradle wrapper --gradle-version 8.1
         chmod +x ./gradlew
-
-    - name: Build APK dengan Gradle
-      run: ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug --no-daemon
 
     - name: Unggah APK An-Nawa
       uses: actions/upload-artifact@v4
