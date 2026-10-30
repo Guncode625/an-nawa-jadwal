@@ -1020,7 +1020,7 @@ function getPiketTeacherNames() {
   });
   return uniqueSorted(names);
 }
-/* PERHITUNGAN PIKET FINAL 100% AKURAT (JAM 1-7 DENGAN BOBOT TEPAT) */
+/* PERHITUNGAN PIKET FINAL 100% AKURAT (9 JP) */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1042,18 +1042,18 @@ function countTeacherPiket(teacherName) {
       const barisTeks = normalize(Object.values(row).join(" "));
       const isJumat = barisTeks.includes("jumat");
 
-      // PENENTUAN BOBOT BERDASARKAN NOMOR BARIS:
+      // TENTUKAN BOBOT JP BERDASARKAN NOMOR BARIS ABSOLUT:
       let bobotPerSel = 0;
 
       if (rowIndex === 3 || rowIndex === 6) {
-        // Baris Istirahat (Baris 4 & 7) -> 0 JP
+        // Baris 4 & 7 (Istirahat 1 & 2) -> 0 JP (Diabaikan)
         return;
       } else if (rowIndex === 9) {
         // Baris 10 (Jam ke-7) -> Selalu 1 JP untuk semua hari
         bobotPerSel = 1;
       } else if (rowIndex === 7 || rowIndex === 8) {
         // Baris 8 & 9 (Jam ke-5 & Jam ke-6)
-        // Jika Jumat = 1 JP, jika hari lain (Senin-Kamis/Sabtu) = 2 JP penuh
+        // Jika Jumat = 1 JP, selain Jumat (Senin-Kamis/Sabtu) = 2 JP penuh
         bobotPerSel = isJumat ? 1 : 2;
       } else {
         // Baris 2, 3, 5, 6 (Jam 1, 2, 3, 4) -> Selalu 2 JP penuh
