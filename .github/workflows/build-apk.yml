@@ -27,14 +27,6 @@ jobs:
         with:
           gradle-version: '7.5'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK Components & Accept Licenses
-        run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-33" "build-tools;33.0.2"
-
       - name: Buat Struktur File dan Direktori APK
         run: |
           mkdir -p app/src/main/java/com/annawa/jadwal
@@ -243,20 +235,20 @@ jobs:
           include ':app'
           EOF
 
-          # 6. App Gradle
+          # 6. App Gradle (Menggunakan compileSdk 34 agar otomatis mendownload SDK terbaru dengan mulus)
           cat << 'EOF' > app/build.gradle
           plugins {
               id 'com.android.application'
           }
           android {
               namespace 'com.annawa.jadwal'
-              compileSdk 33
+              compileSdk 34
               defaultConfig {
                   applicationId "com.annawa.jadwal"
                   minSdk 21
-                  targetSdk 33
-                  versionCode 18
-                  versionName "2.7"
+                  targetSdk 34
+                  versionCode 19
+                  versionName "2.8"
               }
           }
           EOF
