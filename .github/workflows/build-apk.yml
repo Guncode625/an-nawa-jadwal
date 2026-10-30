@@ -26,9 +26,9 @@ jobs:
         channel: 'stable'
         cache: true
 
-    - name: Konfigurasi WebView & Integrasi AdMob
+    - name: Konfigurasi Proyek, WebView & Integrasi AdMob
       run: |
-        # Buat kerangka proyek Flutter dengan nama asli
+        # Buat kerangka proyek Flutter
         flutter create . --org com.annawa --project-name jadwal_annawa --platforms android
 
         # Pastikan folder assets ada dan salin file web serta database asli Ustadz
@@ -36,9 +36,8 @@ jobs:
         cp index.html android/app/src/main/assets/index.html
         cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
 
-        # Tambahkan dependensi WebView dan AdMob di pubspec.yaml
-        echo "  webview_flutter: ^4.7.0" >> pubspec.yaml
-        echo "  google_mobile_ads: ^5.1.0" >> pubspec.yaml
+        # Perbaiki penulisan dependensi agar masuk ke bagian dependencies: yang benar di pubspec.yaml
+        sed -i '/dependencies:/a \  webview_flutter: ^4.7.0\n  google_mobile_ads: ^5.1.0' pubspec.yaml
         flutter pub get
 
         # Sisipkan App ID AdMob ke AndroidManifest.xml
@@ -47,7 +46,7 @@ jobs:
           sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>\n</application>|g' "$MANIFEST_PATH"
         fi
 
-        # Timpa file lib/main.dart agar langsung memuat index.html offline milik pesantren
+        # Timpa file lib/main.dart agar langsung memuat file index.html offline milik pesantren
         cat << 'EOF' > lib/main.dart
         import 'package:flutter/material.dart';
         import 'package:webview_flutter/webview_flutter.dart';
