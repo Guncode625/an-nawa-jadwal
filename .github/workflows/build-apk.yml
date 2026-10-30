@@ -36,9 +36,13 @@ jobs:
         cp index.html android/app/src/main/assets/index.html
         cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
 
-        # Perbaiki penulisan dependensi agar masuk ke bagian dependencies: yang benar di pubspec.yaml
+        # Tambahkan dependensi webview_flutter dan google_mobile_ads di pubspec.yaml
         sed -i '/dependencies:/a \  webview_flutter: ^4.7.0\n  google_mobile_ads: ^5.1.0' pubspec.yaml
         flutter pub get
+
+        # Paksa set minSdk langsung ke 21 dengan menimpa baris defaultConfig di android/app/build.gradle
+        sed -i 's/minSdk.*/minSdk 21/g' android/app/build.gradle
+        sed -i 's/minSdkVersion.*/minSdkVersion 21/g' android/app/build.gradle
 
         # Sisipkan App ID AdMob ke AndroidManifest.xml
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
