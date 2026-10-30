@@ -1394,36 +1394,41 @@ function simpanDataIzin(e) {
     });
 }
 
-function renderTabelGuruIzin() {
+async function renderTabelGuruIzin() {
     const wrap = document.getElementById('tabelGuruIzinWrap');
     if (!wrap) return;
     
-    let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
-    if (listIzin.length === 0) {
-        wrap.innerHTML = '<div class="empty">Belum ada data guru izin yang tercatat hari ini.</div>';
-        return;
+    try {
+        const response = await fetch('./izin.json?t=' + Date.now(), { cache: "no-store" });
+        const listIzin = await response.json();
+
+        if (!listIzin || listIzin.length === 0) {
+            wrap.innerHTML = '<div class="empty">Belum ada data guru izin yang tercatat hari ini.</div>';
+            return;
+        }
+
+        let html = `<table><thead><tr>
+            <th>Tanggal</th><th>Nama Guru</th><th>Jam Ke</th><th>Kelas</th><th>Keterangan</th><th>Guru Pengganti / Piket</th><th>Aksi</th>
+        </tr></thead><tbody>`;
+
+        listIzin.forEach((item, index) => {
+            html += `<tr>
+                <td>${escapeHTML(item.tanggal)}</td>
+                <td><strong>${escapeHTML(item.guru)}</strong></td>
+                <td>${escapeHTML(item.jam)}</td>
+                <td>${escapeHTML(item.kelas)}</td>
+                <td>${escapeHTML(item.keterangan)}</td>
+                <td>${escapeHTML(item.pengganti)}</td>
+                <td><button onclick="hapusDataIzin(${index})" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; font-size:11px;">Hapus</button></td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        wrap.innerHTML = html;
+    } catch(e) {
+        wrap.innerHTML = '<div class="empty">Gagal memuat data izin dari server.</div>';
     }
-
-    let html = `<table><thead><tr>
-        <th>Tanggal</th><th>Nama Guru</th><th>Jam Ke</th><th>Kelas</th><th>Keterangan</th><th>Guru Pengganti / Piket</th><th>Aksi</th>
-    </tr></thead><tbody>`;
-
-    listIzin.forEach((item, index) => {
-        html += `<tr>
-            <td>${escapeHTML(item.tanggal)}</td>
-            <td><strong>${escapeHTML(item.guru)}</strong></td>
-            <td>${escapeHTML(item.jam)}</td>
-            <td>${escapeHTML(item.kelas)}</td>
-            <td>${escapeHTML(item.keterangan)}</td>
-            <td>${escapeHTML(item.pengganti)}</td>
-            <td><button onclick="hapusDataIzin(${index})" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; font-size:11px;">Hapus</button></td>
-        </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    wrap.innerHTML = html;
 }
-
 function hapusDataIzin(index) {
     const sandiBenar = "bapengun2026";
     mintaSandiCustom(function(inputSandi) {
@@ -1510,21 +1515,25 @@ function hapusPengumumanLangsung() {
         });
     });
 }
-function muatPengumumanBeranda() {
-    const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || 'null');
-    const kotak = document.getElementById('kotakPengumumanBeranda');
-    const isi = document.getElementById('isiPengumumanBeranda');
-    const tgl = document.getElementById('tanggalPengumuman');
+async function muatPengumumanBeranda() {
+    try {
+        const response = await fetch('./pengumuman.json?t=' + Date.now(), { cache: "no-store" });
+        const saved = await response.json();
+        const kotak = document.getElementById('kotakPengumumanBeranda');
+        const isi = document.getElementById('isiPengumumanBeranda');
+        const tgl = document.getElementById('tanggalPengumuman');
 
-    if (saved && saved.pesan) {
-        isi.textContent = saved.pesan;
-        tgl.textContent = "Diterbitkan: " + saved.tanggal;
-        kotak.style.display = 'block';
-    } else {
-        kotak.style.display = 'none';
+        if (saved && saved.pesan) {
+            isi.textContent = saved.pesan;
+            tgl.textContent = "Diterbitkan: " + saved.tanggal;
+            kotak.style.display = 'block';
+        } else {
+            kotak.style.display = 'none';
+        }
+    } catch(e) {
+        console.error("Gagal memuat pengumuman:", e);
     }
-}
-  
+}  
 // Jalankan saat halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {
     loadWorkbook();
