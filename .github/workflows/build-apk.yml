@@ -19,27 +19,35 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Buat Arsip WebView Siap Build
-      run: |
-        mkdir -p www
-        cp index.html www/
-        cp DATABASE.xlsx www/ 2>/dev/null || true
-
-    - name: Kompilasi Otomatis via Gradle Runner
+    - name: Kompilasi Otomatis via Flutter & Integrasi AdMob
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.19.0'
         channel: 'stable'
         cache: true
 
-    - name: Bangun APK Android
+    - name: Konfigurasi Proyek & Tambahkan AdMob
       run: |
         flutter create . --org com.annawa --project-name jadwal_app --platforms android
+        
+        # Salin file web utama dan database ke assets
         cp index.html android/app/src/main/assets/index.html 2>/dev/null || true
+        cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
+
+        # Tambahkan dependensi Google Mobile Ads di pubspec.yaml
+        echo "  google_mobile_ads: ^5.1.0" >> pubspec.yaml
+        flutter pub get
+
+        # Sisipkan App ID AdMob ke AndroidManifest.xml
+        MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+        if [ -f "$MANIFEST_PATH" ]; then
+          sed -i '/<application/a \    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>' "$MANIFEST_PATH"
+        fi
+
         flutter build apk --debug
 
-    - name: Unggah Berkas APK Hasil Build
+    - name: Unggah Berkas APK Ber-AdMob
       uses: actions/upload-artifact@v4
       with:
-        name: Jadwal-AnNawa-Debug.apk
+        name: Jadwal-AnNawa-AdMob-Debug.apk
         path: build/app/outputs/flutter-apk/app-debug.apk
