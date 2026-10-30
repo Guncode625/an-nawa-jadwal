@@ -28,7 +28,17 @@ jobs:
         cp index.html app/src/main/assets/
         cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
-        # 1. AndroidManifest.xml (Termasuk App ID AdMob)
+        # Buat folder khusus ikon mipmap Android
+        mkdir -p app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
+
+        # Salin dan sesuaikan logo.png milik pesantren agar menjadi ikon aplikasi
+        cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-mdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+
+        # 1. AndroidManifest.xml (Termasuk App ID AdMob & Icon)
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.annawa.jadwal">
@@ -36,6 +46,8 @@ jobs:
             <application
                 android:allowBackup="true"
                 android:label="Jadwal An-Nawa"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher"
                 android:usesCleartextTraffic="true">
                 
                 <!-- AdMob App ID -->
@@ -55,7 +67,7 @@ jobs:
         </manifest>
         EOF
 
-        # 2. MainActivity.java (WebView Lokal berukuran sangat kecil)
+        # 2. MainActivity.java (WebView Lokal berukuran sangat kecil dengan izin akses berkas penuh)
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -76,6 +88,8 @@ jobs:
                 settings.setDomStorageEnabled(true);
                 settings.setAllowFileAccess(true);
                 settings.setAllowContentAccess(true);
+                settings.setAllowFileAccessFromFileURLs(true);
+                settings.setAllowUniversalAccessFromFileURLs(true);
                 
                 webView.setWebViewClient(new WebViewClient());
                 webView.loadUrl("file:///android_asset/index.html");
@@ -93,7 +107,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle murni tanpa wrapper bawaan yang bentrok
+        # 3. Konfigurasi Gradle murni
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -134,7 +148,7 @@ jobs:
         }
         EOF
 
-        # Langsung jalankan gradle menggunakan engine global server tanpa gradlew wrapper
+        # Langsung jalankan gradle
         gradle assembleDebug --no-daemon
 
     - name: Unggah APK Ringan An-Nawa
