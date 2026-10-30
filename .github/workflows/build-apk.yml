@@ -19,23 +19,22 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Buat Proyek WebView Android
+    - name: Siapkan Struktur Proyek Android & WebView
       run: |
-        # Membuat struktur dasar proyek Android sederhana via Gradle
-        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal
+        # Buat direktori standar proyek Android
+        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/mipmap-hdpi
         
-        # Salin file web utama (index.html dan database excel) ke dalam asset aplikasi
+        # Salin file web utama ke folder assets aplikasi
         cp index.html app/src/main/assets/
         cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
-        # Buat AndroidManifest minimal
+        # 1. Buat AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.annawa.jadwal">
             <uses-permission android:name="android.permission.INTERNET" />
             <application
                 android:allowBackup="true"
-                android:icon="@mipmap/ic_launcher"
                 android:label="Jadwal An-Nawa"
                 android:usesCleartextTraffic="true">
                 <activity
@@ -50,7 +49,7 @@ jobs:
         </manifest>
         EOF
 
-        # Buat MainActivity Java untuk memuat file index.html lokal
+        # 2. Buat MainActivity.java
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -74,7 +73,7 @@ jobs:
         }
         EOF
 
-        # Buat build.gradle minimal untuk kompilasi APK
+        # 3. Konfigurasi Gradle Build
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -115,14 +114,13 @@ jobs:
         }
         EOF
 
-        # Buat file gradle wrapper sederhana
         gradle wrapper
 
-    - name: Kompilasi APK dengan Gradle
+    - name: Kompilasi APK Debug
       run: ./gradlew assembleDebug
 
-    - name: Unggah Berkas APK Hasil Build
+    - name: Unggah File APK Matang
       uses: actions/upload-artifact@v4
       with:
-        name: Jadwal-AnNawa-APK
+        name: Aplikasi-Jadwal-AnNawa-APK
         path: app/build/outputs/apk/debug/*.apk
