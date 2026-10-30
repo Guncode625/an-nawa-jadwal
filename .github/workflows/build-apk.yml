@@ -21,9 +21,6 @@ jobs:
 
     - name: Rangkai Struktur Proyek APK Ringan
       run: |
-        # Bersihkan direktori jika ada sisa file flutter sebelumnya
-        rm -rf android ios lib web build .dart_tool pubspec.yaml 2>/dev/null || true
-
         # Buat struktur direktori Android standar
         mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
 
