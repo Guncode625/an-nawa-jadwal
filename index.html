@@ -1021,60 +1021,81 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 
-/* PERHITUNGAN PIKET BERDASARKAN NOMOR BARIS EXCEL YANG PASTI */
+/* PERHITUNGAN BEBAN JP PIKET BERDASARKAN JAM PELAJARAN */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
-  if(!wanted) return 0;
+  if (!wanted) return 0;
+
   let totalJpPiket = 0;
 
   try {
     if (!state || !state.piket || !state.piket.length) return 0;
 
-    // Perulangan dengan indeks baris Excel (index 0 adalah baris pertama data)
-    state.piket.forEach((row, index) => {
+    // Mencari kolom Jam ke
+    const jamKeHeader = state.piketHeaders.find(header =>
+      ["jamke", "jp", "jam"].includes(normalize(header))
+    );
+
+    if (!jamKeHeader) {
+      console.warn("Kolom Jam ke tidak ditemukan.");
+      return 0;
+    }
+
+    // Mencari kolom hari Senin sampai Sabtu
+    const kolomHari = state.piketHeaders
+      .map(header => ({
+        header: header,
+        hari: normalizeDay(header)
+      }))
+      .filter(item =>
+        ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"]
+          .includes(item.hari)
+      );
+
+    // Membaca setiap baris jadwal piket
+    state.piket.forEach(row => {
       if (!row) return;
-      
-      // Cek apakah nama guru ada di baris ini
-      let guruDiBarisIni = false;
-      Object.values(row).forEach(val => {
-        const cellStr = clean(val);
-        const names = cellStr.split(/\n|,|;|\/|&/).map(normalize);
-        if (names.includes(wanted)) {
-          guruDiBarisIni = true;
-        }
-      });
 
-      if (guruDiBarisIni) {
-        const nomorBarisExcel = index + 1; // Baris 1, 2, 3, dst.
-        const barisTeks = normalize(Object.values(row).join(" "));
+      // Mengambil nomor jam pelajaran, bukan nomor baris Excel
+      const jamKe = periodNumber(row[jamKeHeader]);
 
-        // ATURAN BERDASARKAN NOMOR BARIS:
-        
-        // 1. Baris 9 (Jam ke-7 semua hari) -> 1 JP
-        if (nomorBarisExcel === 9 || barisTeks.includes("7")) {
-          totalJpPiket += 1;
-        } 
-        // 2. Baris 7 (Jam ke-5)
-        else if (nomorBarisExcel === 7 || barisTeks.includes("5")) {
-          // Jika hari Jumat di jam ke-5 -> 1 JP, selain Jumat -> 2 JP
-          if (barisTeks.includes("jumat")) {
+      // Baris istirahat tidak memiliki nomor jam, sehingga dilewati
+      if (jamKe < 1 || jamKe > 7) return;
+
+      // Memeriksa nama petugas pada setiap kolom hari
+      kolomHari.forEach(item => {
+        const namaPetugas = clean(row[item.header]);
+
+        if (!namaPetugas) return;
+
+        const daftarNama = namaPetugas
+          .split(/\n|,|;|\/|&|\bdan\b/i)
+          .map(nama => normalize(nama))
+          .filter(Boolean);
+
+        // Jika nama guru ditemukan pada hari tersebut
+        if (daftarNama.includes(wanted)) {
+
+          // Jam ke-7 semua hari = 1 JP
+          if (jamKe === 7) {
             totalJpPiket += 1;
-          } else {
+          }
+
+          // Jumat jam ke-5 = 1 JP
+          else if (item.hari === "Jumat" && jamKe === 5) {
+            totalJpPiket += 1;
+          }
+
+          // Jam ke-1 sampai ke-6 lainnya = 2 JP
+          else if (jamKe >= 1 && jamKe <= 6) {
             totalJpPiket += 2;
           }
-        } 
-        // 3. Baris istirahat (Baris 3 dan 6) -> 0 JP
-        else if (barisTeks.includes("istirahat")) {
-          totalJpPiket += 0;
-        } 
-        // 4. Jam standar lainnya (Baris 1, 2, 4, 5, 8 / Jam ke 1, 2, 3, 4, 6) -> 2 JP penuh
-        else {
-          totalJpPiket += 2;
         }
-      }
+      });
     });
-  } catch(e) {
-    console.error("Error hitung piket:", e);
+
+  } catch (e) {
+    console.error("Error menghitung JP piket:", e);
   }
 
   return totalJpPiket;
