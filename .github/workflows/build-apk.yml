@@ -19,15 +19,15 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Siapkan Struktur Proyek Android & WebView
+    - name: Siapkan Proyek & WebView Android
       run: |
         mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal
         
-        # Salin file web utama
+        # Salin file web utama pesantren
         cp index.html app/src/main/assets/
         cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
-        # Buat AndroidManifest.xml
+        # 1. AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.annawa.jadwal">
@@ -48,7 +48,7 @@ jobs:
         </manifest>
         EOF
 
-        # Buat MainActivity.java
+        # 2. MainActivity.java
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -72,7 +72,7 @@ jobs:
         }
         EOF
 
-        # Konfigurasi Gradle
+        # 3. Konfigurasi Root Build.gradle
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -80,7 +80,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath 'com.android.tools.build:gradle:7.4.2'
             }
         }
         allprojects {
@@ -96,6 +96,7 @@ jobs:
         rootProject.name = "Jadwal AnNawa"
         EOF
 
+        # 4. Konfigurasi App Build.gradle
         cat << 'EOF' > app/build.gradle
         plugins {
             id 'com.android.application'
@@ -113,16 +114,16 @@ jobs:
         }
         EOF
 
-        gradle wrapper
+        gradle wrapper --gradle-version 7.5
 
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
 
     - name: Kompilasi APK Debug
       run: |
-        # Setujui lisensi SDK secara otomatis
         yes | sdkmanager --licenses || true
-        ./gradlew assembleDebug
+        chmod +x ./gradlew
+        ./gradlew assembleDebug --no-daemon
 
     - name: Unggah File APK Matang
       uses: actions/upload-artifact@v4
