@@ -19,18 +19,18 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Kompilasi Otomatis via Flutter & Integrasi AdMob
+    - name: Kompilasi Otomatis via Flutter & AdMob
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.19.0'
         channel: 'stable'
         cache: true
 
-    - name: Konfigurasi Proyek & Tambahkan AdMob
+    - name: Konfigurasi Proyek & Sisipkan App ID AdMob
       run: |
         flutter create . --org com.annawa --project-name jadwal_app --platforms android
         
-        # Salin file web utama dan database ke assets
+        # Salin file web utama dan database ke assets Flutter
         cp index.html android/app/src/main/assets/index.html 2>/dev/null || true
         cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
 
@@ -38,10 +38,11 @@ jobs:
         echo "  google_mobile_ads: ^5.1.0" >> pubspec.yaml
         flutter pub get
 
-        # Sisipkan App ID AdMob ke AndroidManifest.xml
+        # Sisipkan App ID AdMob ke dalam AndroidManifest.xml secara aman
         MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
         if [ -f "$MANIFEST_PATH" ]; then
-          sed -i '/<application/a \    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>' "$MANIFEST_PATH"
+          # Masukkan meta-data App ID tepat di atas tag penutup </application>
+          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>\n</application>|g' "$MANIFEST_PATH"
         fi
 
         flutter build apk --debug
@@ -49,5 +50,5 @@ jobs:
     - name: Unggah Berkas APK Ber-AdMob
       uses: actions/upload-artifact@v4
       with:
-        name: Jadwal-AnNawa-AdMob-Debug.apk
+        name: Jadwal-AnNawa-AdMob-Debug
         path: build/app/outputs/flutter-apk/app-debug.apk
