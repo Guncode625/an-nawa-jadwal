@@ -21,14 +21,13 @@ jobs:
 
     - name: Siapkan Struktur Proyek Android & WebView
       run: |
-        # Buat direktori standar proyek Android
-        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/mipmap-hdpi
+        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal
         
-        # Salin file web utama ke folder assets aplikasi
+        # Salin file web utama
         cp index.html app/src/main/assets/
         cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
 
-        # 1. Buat AndroidManifest.xml
+        # Buat AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
             package="com.annawa.jadwal">
@@ -49,7 +48,7 @@ jobs:
         </manifest>
         EOF
 
-        # 2. Buat MainActivity.java
+        # Buat MainActivity.java
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -73,7 +72,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle Build
+        # Konfigurasi Gradle
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -116,8 +115,14 @@ jobs:
 
         gradle wrapper
 
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Kompilasi APK Debug
-      run: ./gradlew assembleDebug
+      run: |
+        # Setujui lisensi SDK secara otomatis
+        yes | sdkmanager --licenses || true
+        ./gradlew assembleDebug
 
     - name: Unggah File APK Matang
       uses: actions/upload-artifact@v4
