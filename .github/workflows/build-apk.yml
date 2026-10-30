@@ -27,14 +27,36 @@ jobs:
         with:
           gradle-version: '7.5'
 
-      - name: Setup Android SDK
+            - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK Components & Accept Licenses
+      - name: Install Android SDK Components
+        shell: bash
         run: |
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-33" "build-tools;33.0.2"
+          set -e
 
+          echo "Memeriksa lokasi Android SDK..."
+          echo "ANDROID_HOME=$ANDROID_HOME"
+
+          if [ -z "$ANDROID_HOME" ]; then
+            echo "ERROR: Lokasi Android SDK tidak ditemukan."
+            exit 1
+          fi
+
+          echo "Menerima lisensi Android SDK..."
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses || true
+
+          echo "Menginstal Android Platform 33..."
+          sdkmanager --sdk_root="$ANDROID_HOME" --install "platforms;android-33"
+
+          echo "Menginstal Android Build Tools 33.0.2..."
+          sdkmanager --sdk_root="$ANDROID_HOME" --install "build-tools;33.0.2"
+
+          echo "Memeriksa hasil instalasi..."
+          test -d "$ANDROID_HOME/platforms/android-33"
+          test -d "$ANDROID_HOME/build-tools/33.0.2"
+
+          echo "ANDROID SDK BERHASIL DISIAPKAN."
       - name: Buat Struktur File dan Direktori APK
         run: |
           mkdir -p app/src/main/java/com/annawa/jadwal
@@ -232,16 +254,8 @@ jobs:
                   gradlePluginPortal()
               }
           }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
           rootProject.name = "Jadwal AnNawa"
           include ':app'
-          EOF
 
           # 6. App Gradle
           cat << 'EOF' > app/build.gradle
