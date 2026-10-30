@@ -19,6 +19,9 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Buat Struktur Proyek Android Native
       run: |
         mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
@@ -49,7 +52,7 @@ jobs:
         </manifest>
         EOF
 
-        # 2. MainActivity.java (Penuh dengan WebView dan pengaturan JS agar lancar)
+        # 2. MainActivity.java
         cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
         package com.annawa.jadwal;
         import android.app.Activity;
@@ -87,7 +90,7 @@ jobs:
         }
         EOF
 
-        # 3. strings.xml wajib untuk label aplikasi
+        # 3. strings.xml
         cat << 'EOF' > app/src/main/res/values/strings.xml
         <resources>
             <string name="app_name">Jadwal An-Nawa</string>
@@ -140,6 +143,7 @@ jobs:
 
     - name: Build APK via Gradle
       run: |
+        yes | sdkmanager --licenses || true
         chmod +x ./gradlew
         ./gradlew assembleDebug --no-daemon
 
