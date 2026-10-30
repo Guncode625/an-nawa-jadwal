@@ -1020,7 +1020,7 @@ function getPiketTeacherNames() {
   });
   return uniqueSorted(names);
 }
-/* PERHITUNGAN PIKET FINAL 100% AKURAT SESUAI RUMUS PESANTREN */
+/* PERHITUNGAN PIKET FINAL SESUAI STRURTUR BARIS EXCEL PESANTREN */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1035,32 +1035,36 @@ function countTeacherPiket(teacherName) {
       hari.includes(normalizeDay(header))
     );
 
-    state.piket.forEach(row => {
+    // Iterasi setiap baris data di Excel (rowIndex 0, 1, 2, dst.)
+    state.piket.forEach((row, rowIndex) => {
       if (!row) return;
 
-      // Ambil teks penanda baris dari kolom pertama (Jam Ke / JP)
-      let jamKeVal = "";
-      const keys = Object.keys(row);
-      if (keys.length > 0) {
-        jamKeVal = String(row[keys[0]] || "").trim();
-      }
       const barisTeks = normalize(Object.values(row).join(" "));
+      const isJumat = barisTeks.includes("jumat");
 
-      // Abaikan jika baris istirahat
-      if (jamKeVal.includes("—") || jamKeVal.includes("-") || barisTeks.includes("istirahat")) {
+      // TENTUKAN BOBOT JP BERDASARKAN NOMOR BARIS (rowIndex 0 adalah baris 1):
+      // - Baris 4 (index 3) & Baris 7 (index 6) = Istirahat (0 JP)
+      // - Baris 10 (index 9) = Jam ke-7 (1 JP semua hari)
+      // - Baris 8 (index 7) & Baris 9 (index 8): Jumat = 1 JP, selain Jumat = 2 JP
+      // - Baris 2, 3, 5, 6 (index 0, 1, 4, 5) = Jam standar (2 JP penuh)
+
+      let bobotPerSel = 0;
+
+      if (rowIndex === 3 || rowIndex === 6) {
+        // Baris Istirahat (Baris 4 & 7) -> 0 JP
         return;
+      } else if (rowIndex === 9) {
+        // Baris 10 (Jam ke-7) -> Selalu 1 JP
+        bobotPerSel = 1;
+      } else if (rowIndex === 7 || rowIndex === 8) {
+        // Baris 8 & 9 (Jam ke-5 & Jam ke-6)
+        bobotPerSel = isJumat ? 1 : 2;
+      } else {
+        // Baris 2, 3, 5, 6 (Jam 1, 2, 3, 4) -> Selalu 2 JP penuh
+        bobotPerSel = 2;
       }
 
-      // ATURAN BOBOT JP PER SESI:
-      // - Jam ke-7 (semua hari) -> 1 JP
-      // - Jumat Jam ke-5 -> 1 JP (karena tugas berdua)
-      // - Selain itu (Jam 1, 2, 3, 4, 6, dan Jam 5 hari Senin-Kamis/Sabtu) -> 2 JP penuh
-      const isJam7 = jamKeVal.includes("7") || barisTeks.includes("7");
-      const isJumatJam5 = (jamKeVal.includes("5") || barisTeks.includes("5")) && barisTeks.includes("jumat");
-
-      const bobotPerSesi = (isJam7 || isJumatJam5) ? 1 : 2;
-
-      // Periksa setiap kolom hari
+      // Hitung kemunculan nama ustadz di kolom hari (Senin s.d. Sabtu)
       kolomHari.forEach(header => {
         let cellStr = clean(row[header]);
         if (!cellStr) return;
@@ -1076,7 +1080,7 @@ function countTeacherPiket(teacherName) {
 
         names.forEach(name => {
           if (name === wanted) {
-            totalJpPiket += bobotPerSesi;
+            totalJpPiket += bobotPerSel;
           }
         });
       });
