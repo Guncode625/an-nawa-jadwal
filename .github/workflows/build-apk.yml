@@ -137,7 +137,7 @@ jobs:
         }
         EOF
 
-        # 3. Konfigurasi Gradle Stabil
+        # 3. Konfigurasi Gradle Standar
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -145,7 +145,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:7.4.2'
+                classpath 'com.android.tools.build:gradle:8.2.0'
             }
         }
         allprojects {
@@ -167,20 +167,19 @@ jobs:
         }
         android {
             namespace 'com.annawa.jadwal'
-            compileSdk 33
+            compileSdk 34
             defaultConfig {
                 applicationId "com.annawa.jadwal"
                 minSdk 21
-                targetSdk 33
-                versionCode 7
-                versionName "1.6"
+                targetSdk 34
+                versionCode 8
+                versionName "1.7"
             }
         }
         EOF
 
-        gradle wrapper --gradle-version 7.5
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --no-daemon
+        # Langsung eksekusi gradle assemble tanpa wrapper
+        gradle assembleDebug --no-daemon
 
     - name: Unggah APK Ringan An-Nawa
       uses: actions/upload-artifact@v4
