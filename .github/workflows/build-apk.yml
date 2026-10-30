@@ -19,142 +19,31 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
+    - name: Kompilasi Otomatis via Flutter & AdMob
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        cache: true
 
-    - name: Siapkan Struktur & Kompilasi APK Gradle
+    - name: Konfigurasi Proyek & Sisipkan AdMob
       run: |
-        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
+        flutter create . --org com.annawa --project-name jadwal_app --platforms android
         
-        # Salin file web dan database utama ke assets Android
-        cp index.html app/src/main/assets/
-        cp DATABASE.xlsx app/src/main/assets/ 2>/dev/null || true
+        # Salin file web utama dan database ke assets Flutter
+        cp index.html android/app/src/main/assets/index.html 2>/dev/null || true
+        cp DATABASE.xlsx android/app/src/main/assets/DATABASE.xlsx 2>/dev/null || true
 
-        # 1. AndroidManifest.xml (Termasuk App ID AdMob)
-        cat << 'EOF' > app/src/main/AndroidManifest.xml
-        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.annawa.jadwal">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <application
-                android:allowBackup="true"
-                android:label="Jadwal An-Nawa"
-                android:usesCleartextTraffic="true"
-                android:icon="@mipmap/ic_launcher">
-                
-                <!-- AdMob App ID -->
-                <meta-data
-                    android:name="com.google.android.gms.ads.APPLICATION_ID"
-                    android:value="ca-app-pub-3143680001009952~1205948994"/>
+        # Sisipkan App ID AdMob ke dalam AndroidManifest.xml secara aman
+        MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+        if [ -f "$MANIFEST_PATH" ]; then
+          sed -i 's|</application>|    <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3143680001009952~1205948994"/>\n</application>|g' "$MANIFEST_PATH"
+        fi
 
-                <activity
-                    android:name=".MainActivity"
-                    android:exported="true">
-                    <intent-filter>
-                        <action android:name="android.intent.action.MAIN" />
-                        <category android:name="android.intent.category.LAUNCHER" />
-                    </intent-filter>
-                </activity>
-            </application>
-        </manifest>
-        EOF
+        flutter build apk --debug
 
-        # 2. MainActivity.java (WebView untuk memuat index.html lokal)
-        cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
-        package com.annawa.jadwal;
-        import android.app.Activity;
-        import android.os.Bundle;
-        import android.webkit.WebSettings;
-        import android.webkit.WebView;
-        import android.webkit.WebViewClient;
-
-        public class MainActivity extends Activity {
-            private WebView webView;
-
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-                super.onCreate(savedInstanceState);
-                webView = new WebView(this);
-                WebSettings settings = webView.getSettings();
-                settings.setJavaScriptEnabled(true);
-                settings.setDomStorageEnabled(true);
-                settings.setAllowFileAccess(true);
-                settings.setAllowContentAccess(true);
-                
-                webView.setWebViewClient(new WebViewClient());
-                webView.loadUrl("file:///android_asset/index.html");
-                setContentView(webView);
-            }
-
-            @Override
-            public void onBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack();
-                } else {
-                    super.onBackPressed();
-                }
-            }
-        }
-        EOF
-
-        # 3. strings.xml
-        cat << 'EOF' > app/src/main/res/values/strings.xml
-        <resources>
-            <string name="app_name">Jadwal An-Nawa</string>
-        </resources>
-        EOF
-
-        # 4. Konfigurasi Gradle Root
-        cat << 'EOF' > build.gradle
-        buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
-            dependencies {
-                classpath 'com.android.tools.build:gradle:7.4.2'
-            }
-        }
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
-        EOF
-
-        cat << 'EOF' > settings.gradle
-        include ':app'
-        rootProject.name = "Jadwal AnNawa"
-        EOF
-
-        # 5. Konfigurasi app/build.gradle
-        cat << 'EOF' > app/build.gradle
-        plugins {
-            id 'com.android.application'
-        }
-        android {
-            namespace 'com.annawa.jadwal'
-            compileSdk 33
-            defaultConfig {
-                applicationId "com.annawa.jadwal"
-                minSdk 21
-                targetSdk 33
-                versionCode 1
-                versionName "1.0"
-            }
-        }
-        EOF
-
-        gradle wrapper --gradle-version 7.5
-
-    - name: Build APK via Gradle
-      run: |
-        yes | sdkmanager --licenses || true
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --no-daemon
-
-    - name: Unggah Artefak APK Ber-AdMob
+    - name: Unggah Berkas APK Ber-AdMob
       uses: actions/upload-artifact@v4
       with:
         name: Jadwal-AnNawa-AdMob-Debug
-        path: app/build/outputs/apk/debug/*.apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
