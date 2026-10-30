@@ -1,1 +1,195 @@
+name: Buat APK Ringan (Gradle Native)
 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Ambil Kode Repositori
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Rangkai Struktur Proyek & Build APK
+      run: |
+        # Buat struktur direktori Android standar
+        mkdir -p app/src/main/assets app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap
+
+        # Buat folder khusus ikon mipmap Android
+        mkdir -p app/src/main/res/mipmap-hdpi app/src/main/res/mipmap-mdpi app/src/main/res/mipmap-xhdpi app/src/main/res/mipmap-xxhdpi app/src/main/res/mipmap-xxxhdpi
+
+        # Salin logo.png pesantren agar otomatis menjadi ikon aplikasi
+        cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-mdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xhdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xxhdpi/ic_launcher.png 2>/dev/null || true
+        cp logo.png app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || true
+
+        # Tema agar bilah judul hitam di atas hilang total (Fullscreen / NoActionBar)
+        cat << 'EOF' > app/src/main/res/values/styles.xml
+        <resources>
+            <style name="AppTheme" parent="android:Theme.NoTitleBar">
+                <item name="android:windowFullscreen">false</item>
+            </style>
+        </resources>
+        EOF
+
+        # 1. AndroidManifest.xml
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.annawa.jadwal">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+            <application
+                android:allowBackup="true"
+                android:label="Jadwal An-Nawa"
+                android:icon="@mipmap/ic_launcher"
+                android:roundIcon="@mipmap/ic_launcher"
+                android:usesCleartextTraffic="true">
+                
+                <!-- AdMob App ID -->
+                <meta-data
+                    android:name="com.google.android.gms.ads.APPLICATION_ID"
+                    android:value="ca-app-pub-3143680001009952~1205948994"/>
+
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:theme="@style/AppTheme"
+                    android:configChanges="orientation|screenSize">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        # 2. MainActivity.java (WebView Hybrid Online & Offline Cache, Dukungan Print & PDF)
+        cat << 'EOF' > app/src/main/java/com/annawa/jadwal/MainActivity.java
+        package com.annawa.jadwal;
+        import android.app.Activity;
+        import android.content.Intent;
+        import android.net.Uri;
+        import android.os.Bundle;
+        import android.webkit.DownloadListener;
+        import android.webkit.WebChromeClient;
+        import android.webkit.WebSettings;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
+        import android.widget.Toast;
+
+        public class MainActivity extends Activity {
+            private WebView webView;
+
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                webView = new WebView(this);
+                
+                WebSettings settings = webView.getSettings();
+                settings.setJavaScriptEnabled(true);
+                settings.setDomStorageEnabled(true);
+                settings.setDatabaseEnabled(true);
+                settings.setCacheMode(WebSettings.LOAD_DEFAULT);
+                settings.setAllowFileAccess(true);
+                settings.setJavaScriptCanOpenWindowsAutomatically(true);
+                
+                webView.setWebViewClient(new WebViewClient());
+                webView.setWebChromeClient(new WebChromeClient());
+
+                webView.setDownloadListener(new DownloadListener() {
+                    @Override
+                    public void downloadStart(String url, String userAgent, String contentDisposition, String mimeType, long contentLength) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(Uri.parse(url));
+                        try {
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "Tidak dapat mengunduh file", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+                webView.loadUrl("https://gunan-awa.github.io/jadwal/");
+                setContentView(webView);
+            }
+
+            @Override
+            public void onBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    super.onBackPressed();
+                }
+            }
+        }
+        EOF
+
+        # 3. Konfigurasi Gradle Standar Tanpa Wrapper
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        EOF
+
+        cat << 'EOF' > settings.gradle
+        include ':app'
+        rootProject.name = "Jadwal AnNawa"
+        EOF
+
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.annawa.jadwal'
+            compileSdk 33
+            defaultConfig {
+                applicationId "com.annawa.jadwal"
+                minSdk 21
+                targetSdk 33
+                versionCode 9
+                versionName "1.8"
+            }
+        }
+        EOF
+
+        # Kompilasi langsung menggunakan sdkmanager / gradle system command
+        sdkmanager "platforms;android-33" "build-tools;33.0.2" || true
+        
+        # Buat dummy gradlew script mandiri agar tidak error
+        echo '#!/usr/bin/env sh' > gradlew
+        echo 'gradle assembleDebug --no-daemon' >> gradlew
+        chmod +x gradlew
+        
+        ./gradlew
+
+    - name: Unggah APK Ringan An-Nawa
+      uses: actions/upload-artifact@v4
+      with:
+        name: Jadwal-AnNawa-Ringan
+        path: app/build/outputs/apk/debug/*.apk
