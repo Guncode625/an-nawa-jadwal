@@ -1021,11 +1021,7 @@ function getPiketTeacherNames() {
   return uniqueSorted(names);
 }
 
-/* PERHITUNGAN BEBAN PIKET AKURAT & AMAN:
-   - Jumat jam ke-5 (berbagi tugas / 2 nama) = 1 JP
-   - Jam ke-7 (semua hari) = 1 JP
-   - Sesi jam piket standar lainnya = 2 JP penuh
-*/
+/* PERHITUNGAN BEBAN PIKET FINAL YANG AKURAT DAN AMAN */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1034,23 +1030,31 @@ function countTeacherPiket(teacherName) {
   try {
     if (!state || !state.piket || !state.piket.length) return 0;
 
+    // Ambil daftar kolom yang berisi nama guru/petugas piket secara otomatis
+    const piketColumns = state.piketHeaders ? state.piketHeaders.filter(header => /guru|petugas|nama|piket/i.test(normalize(header))) : [];
+
     state.piket.forEach(row => {
       if (!row) return;
       const hariBaris = normalize(row["Hari"] || row["hari"] || "");
       const jpBaris = String(row["JP"] || row["jp"] || row["Jam"] || row["jam"] || "");
       
       let guruDiBarisIni = false;
-      if (state.piketHeaders && state.piketHeaders.length) {
-        state.piketHeaders.forEach(header => {
-          const cellValue = clean(row[header]);
-          const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
-          if(names.includes(wanted)) {
-            guruDiBarisIni = true;
-          }
-        });
-      }
+      
+      // Periksa semua kolom piket di baris ini
+      const targetColumns = piketColumns.length ? piketColumns : Object.keys(row);
+      targetColumns.forEach(header => {
+        const cellValue = clean(row[header]);
+        const names = cellValue.split(/\n|,|;|\/|&/).map(normalize);
+        if(names.includes(wanted)) {
+          guruDiBarisIni = true;
+        }
+      });
 
       if (guruDiBarisIni) {
+        // Aturan JP:
+        // - Jam ke-7 (semua hari) = 1 JP
+        // - Jumat jam ke-5 = 1 JP
+        // - Jam piket standar lainnya = 2 JP penuh
         const isJam7 = jpBaris.includes("7");
         const isJumatJam5 = hariBaris.includes("jumat") && jpBaris.includes("5");
 
