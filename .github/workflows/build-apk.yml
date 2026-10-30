@@ -19,12 +19,9 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
-
-    - name: Rangkai Struktur Proyek & Build APK
+    - name: Setup Android SDK & Gradle Wrapper
       run: |
-        mkdir -p app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap-hdpi
+        mkdir -p app/src/main/java/com/annawa/jadwal app/src/main/res/values app/src/main/res/mipmap-hdpi gradle/wrapper
 
         # Salin logo pesantren sebagai ikon aplikasi
         cp logo.png app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
@@ -123,7 +120,7 @@ jobs:
         }
         EOF
 
-        # Gradle Config Minimalis
+        # Konfigurasi Gradle Standar
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -131,7 +128,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.0'
+                classpath 'com.android.tools.build:gradle:7.4.2'
             }
         }
         allprojects {
@@ -158,16 +155,26 @@ jobs:
                 applicationId "com.annawa.jadwal"
                 minSdk 21
                 targetSdk 33
-                versionCode 13
-                versionName "2.2"
+                versionCode 14
+                versionName "2.3"
             }
         }
         EOF
 
-        # Inisialisasi gradle wrapper secara bersih
-        gradle wrapper --gradle-version 8.1
-        chmod +x ./gradlew
-        ./gradlew assembleDebug --no-daemon
+        # Buat file properti gradle wrapper agar runner tidak error mencari file pembungkus
+        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+        distributionBase=GRADLE_USER_HOME
+        distributionPath=wrapper/dists
+        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
+        zipStoreBase=GRADLE_USER_HOME
+        zipStorePath=wrapper/dists
+        EOF
+
+        gradle wrapper --gradle-version 7.5 --distribution-type bin || true
+        chmod +x ./gradlew || true
+
+    - name: Build APK menggunakan Gradle
+      run: ./gradlew assembleDebug --no-daemon
 
     - name: Unggah APK An-Nawa
       uses: actions/upload-artifact@v4
