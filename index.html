@@ -356,73 +356,6 @@ body > footer { background:var(--green-dark);color:#e5f1e9;text-align:center;pad
   .panel { padding:14px; }
   .control-group { min-width:100%; }
 }
-  /* PERBAIKAN RESPONSIF UNTUK TAMPILAN PORTRAIT HP */
-@media (max-width: 768px) {
-  /* Pastikan container utama menyesuaikan lebar layar HP sepenuhnya */
-  main {
-    padding: 12px 8px 30px !important;
-    width: 100% !important;
-  }
-  
-  /* Perbaiki header agar logo dan teks tersusun rapi ke bawah jika sempit */
-  .header-inner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 15px 10px !important;
-    gap: 10px !important;
-  }
-  
-  .header-inner > div:first-child {
-    flex-direction: column;
-    align-items: center;
-    gap: 8px !important;
-  }
-  
-  .brand h1 {
-    font-size: 20px !important;
-  }
-  
-  .brand p {
-    font-size: 11.5px !important;
-  }
-
-  /* Posisikan tombol menu Home agar mudah dijangkau di kanan atas / tengah */
-  .site-header .no-print {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 5px;
-  }
-
-  /* Atur agar tabel jadwal bisa digeser horizontal dengan mulus tanpa merusak layout */
-  .table-wrap {
-    width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Sesuaikan ukuran font tabel di HP agar lebih ringkas dan proporsional */
-  table.schedule-table {
-    min-width: 650px !important;
-    font-size: 11px !important;
-  }
-
-  .schedule-table th, .schedule-table td {
-    padding: 6px 4px !important;
-  }
-
-  /* Kartu ringkasan (summary) agar tersusun turun ke bawah di HP */
-  .summary {
-    grid-template-columns: 1fr !important;
-    gap: 8px !important;
-  }
-  
-  .dashboard-grid {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-}
 </style>
 </head>
 
@@ -1075,54 +1008,18 @@ function countTeacherPeriods(teacherName) {
 }
 
 function getPiketTeacherNames() {
-  if(!state.piketHeaders.length || !state.piket.length) return [];
-
-  // Ambil hanya kolom hari
-  const kolomHari = state.piketHeaders.filter(header =>
-    HARI.includes(normalizeDay(header))
-  );
-
-  const names = [];
-
-  state.piket.forEach(row => {
-    if(!row) return;
-
-    kolomHari.forEach(header => {
-      let cell = clean(row[header]);
-
-      if(!cell) return;
-
-      // Baca baris baru HTML maupun Excel dan nama dalam kurung
-      cell = cell
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/[()]/g, "\n");
-
-      cell.split(/\r?\n|,|;|\/|&|\bdan\b/i)
-        .map(clean)
-        .forEach(name => {
-          const key = normalize(name);
-
-          if(
-            name &&
-            ![
-              "istirahat1",
-              "istirahat2",
-              "shalatjumat",
-              "sholatjumat",
-              "pramuka",
-              "tidakada"
-            ].includes(key) &&
-            key !== "-"
-          ) {
-            names.push(name);
-          }
-        });
+  if(!state.piketHeaders.length) return [];
+  const columns=state.piketHeaders.filter(header=>/guru|petugas|nama|piket/i.test(normalize(header)));
+  const names=[];
+  state.piket.forEach(row=>{
+    columns.forEach(header=>{
+      clean(row[header]).split(/\n|,|;|\/|&/).map(clean).forEach(name=>{
+        if(name&&!/^(guru|petugas|nama|piket|tidak ada|-)$/i.test(name)) names.push(name);
+      });
     });
   });
-
   return uniqueSorted(names);
-}
-/* PERHITUNGAN PIKET FINAL 100% SESUAI STRUKTUR BARIS KBM PESANTREN */
+}/* PERHITUNGAN PIKET STABIL TANPA MENGUBAH STRUKTUR LAIN */
 function countTeacherPiket(teacherName) {
   const wanted = normalize(teacherName);
   if(!wanted) return 0;
@@ -1130,62 +1027,32 @@ function countTeacherPiket(teacherName) {
   let totalJpPiket = 0;
 
   try {
-    if(!state || !state.piket || !state.piket.length) return 0;
+    if (!state || !state.piket || !state.piket.length) return 0;
 
-    // Cari kolom Jam Ke
-    const kolomJam = state.piketHeaders.find(header =>
-      ["jamke", "jp", "jam", "period"].includes(normalize(header))
-    );
-
-    if(!kolomJam) return 0;
-
-    // Ambil kolom Senin sampai Sabtu
+    const hari = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
     const kolomHari = state.piketHeaders.filter(header =>
-      HARI.includes(normalizeDay(header))
+      hari.includes(normalizeDay(header))
     );
 
     state.piket.forEach(row => {
-      if(!row) return;
-
-      // Tentukan nomor jam dari kolom Jam Ke
-      const jamKe = periodNumber(row[kolomJam]);
-
-      // Abaikan baris istirahat atau nomor jam tidak valid
-      if(jamKe < 1 || jamKe > 7) return;
+      if (!row) return;
 
       kolomHari.forEach(header => {
-        const hari = normalizeDay(header);
+        let cellStr = clean(row[header]);
+        if (!cellStr) return;
 
-        let cell = clean(row[header]);
-        if(!cell) return;
-
-        // Ubah format HTML dan tanda kurung menjadi pemisah nama
-        cell = cell
+        cellStr = cellStr
           .replace(/<br\s*\/?>/gi, "\n")
           .replace(/[()]/g, "\n");
 
-        const names = cell
+        const names = cellStr
           .split(/\r?\n|,|;|\/|&|\bdan\b/i)
           .map(name => normalize(name))
           .filter(Boolean);
 
-        // Tentukan bobot JP
-        let bobotJP = 2;
-
-        // Semua hari jam ke-7 = 1 JP
-        if(jamKe === 7) {
-          bobotJP = 1;
-        }
-
-        // Jumat jam ke-5 = 1 JP
-        if(hari === "Jumat" && jamKe === 5) {
-          bobotJP = 1;
-        }
-
-        // Setiap kemunculan nama dihitung sendiri
         names.forEach(name => {
-          if(name === wanted) {
-            totalJpPiket += bobotJP;
+          if (name === wanted) {
+            totalJpPiket += 1;
           }
         });
       });
@@ -1298,7 +1165,54 @@ function printCurrentView() {
     }
   window.print();
 }
+const GITHUB_CONFIG = {
+    owner: "gunan-awa",
+    repo: "jadwal",
+    branch: "main",
+    // Token Akses Pribadi GitHub (PAT) milik Ustadz ditaruh di sini untuk izin tulis otomatis
+    token: "MASUKKAN_GITHUB_PERSONAL_ACCESS_TOKEN_DISINI" 
+};
+  async function saveJSONToGitHub(path, jsonData, commitMessage) {
+    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
+    
+    // 1. Ambil SHA file lama terlebih dahulu (syarat wajib GitHub API untuk update file)
+    let sha = "";
+    try {
+        const getRes = await fetch(url, {
+            headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
+        });
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            sha = fileData.sha;
+        }
+    } catch(e) {
+        console.log("File baru atau belum ada sebelumnya.");
+    }
 
+    // 2. Kirim data baru (di-encode ke Base64)
+    const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(jsonData, null, 2))));
+    
+    const bodyData = {
+        message: commitMessage,
+        content: contentBase64,
+        branch: GITHUB_CONFIG.branch
+    };
+    if (sha) bodyData.sha = sha;
+
+    const putRes = await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Authorization": `token ${GITHUB_CONFIG.token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(bodyData)
+    });
+
+    if (!putRes.ok) {
+        throw new Error("Gagal menyimpan ke server GitHub.");
+    }
+    return true;
+}
 /* SISTEM MODAL PASSWORD ELEGAN (PENGGANTI PROMPT BROWSER) */
 let activePasswordCallback = null;
 
@@ -1372,35 +1286,54 @@ function tutupModalIzin() {
     modal.classList.add('hidden');
     modal.style.display = 'none';
 }
-function simpanDataIzin(e) {
+async function simpanDataIzin(e) {
     e.preventDefault();
-    const dataBaru = {
-        tanggal: document.getElementById('tglIzin').value,
-        guru: document.getElementById('namaAsal').value,
-        jam: document.getElementById('jamIzin').value,
-        kelas: document.getElementById('kelasIzin').value,
-        keterangan: document.getElementById('keteranganIzin').value,
-        pengganti: document.getElementById('namaPengganti').value || 'Belum ada'
-    };
+    
+    // Ambil data lama dulu dari GitHub atau memori, lalu tambahkan yang baru
+    try {
+        setStatus("Menyimpan data izin ke server online...");
+        
+        let listIzin = [];
+        try {
+            const res = await fetch('./izin.json?t=' + Date.now(), { cache: "no-store" });
+            if (res.ok) listIzin = await res.json();
+        } catch(e) { listIzin = []; }
 
-    let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
-    listIzin.push(dataBaru);
-    localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
+        const dataBaru = {
+            tanggal: document.getElementById('tglIzin').value,
+            guru: document.getElementById('namaAsal').value,
+            jam: document.getElementById('jamIzin').value,
+            kelas: document.getElementById('kelasIzin').value,
+            keterangan: document.getElementById('keteranganIzin').value,
+            pengganti: document.getElementById('namaPengganti').value || 'Belum ada'
+        };
 
-    tutupModalIzin();
-    document.getElementById('formIzin').reset();
-    showSuccessToast('Data guru izin berhasil disimpan!', () => {
-        renderTabelGuruIzin();
-    });
+        listIzin.push(dataBaru);
+
+        // Simpan ke izin.json di GitHub
+        await saveJSONToGitHub("izin.json", listIzin, "Tambah data guru izin via web app");
+
+        tutupModalIzin();
+        document.getElementById('formIzin').reset();
+        showSuccessToast('Data guru izin berhasil disimpan & sinkron online!', () => {
+            renderTabelGuruIzin();
+            setStatus("");
+        });
+    } catch(err) {
+        alert("Gagal menyimpan data izin: " + err.message);
+        setStatus("Gagal menyimpan data izin.", "error");
+    }
 }
-
 async function renderTabelGuruIzin() {
     const wrap = document.getElementById('tabelGuruIzinWrap');
     if (!wrap) return;
     
     try {
-        const response = await fetch('./izin.json?t=' + Date.now(), { cache: "no-store" });
-        const listIzin = await response.json();
+        const res = await fetch('./izin.json?t=' + Date.now(), { cache: "no-store" });
+        let listIzin = [];
+        if (res.ok) {
+            listIzin = await res.json();
+        }
 
         if (!listIzin || listIzin.length === 0) {
             wrap.innerHTML = '<div class="empty">Belum ada data guru izin yang tercatat hari ini.</div>';
@@ -1431,7 +1364,7 @@ async function renderTabelGuruIzin() {
 }
 function hapusDataIzin(index) {
     const sandiBenar = "bapengun2026";
-    mintaSandiCustom(function(inputSandi) {
+    mintaSandiCustom(async function(inputSandi) {
         if (inputSandi === null || inputSandi === "") return;
         
         if (inputSandi !== sandiBenar) {
@@ -1439,14 +1372,26 @@ function hapusDataIzin(index) {
             return;
         }
 
-        mintaKonfirmasiCustom('Yakin ingin menghapus catatan guru izin ini?', function(confirmed) {
+        mintaKonfirmasiCustom('Yakin ingin menghapus catatan guru izin ini?', async function(confirmed) {
             if (confirmed) {
-                let listIzin = JSON.parse(localStorage.getItem('anNawaGuruIzin') || '[]');
-                listIzin.splice(index, 1);
-                localStorage.setItem('anNawaGuruIzin', JSON.stringify(listIzin));
-                showSuccessToast('Data izin berhasil dihapus.', () => {
-                    renderTabelGuruIzin();
-                });
+                try {
+                    setStatus("Menghapus data izin dari server...");
+                    const res = await fetch('./izin.json?t=' + Date.now(), { cache: "no-store" });
+                    let listIzin = res.ok ? await res.json() : [];
+                    
+                    listIzin.splice(index, 1);
+
+                    // Simpan perubahan ke GitHub
+                    await saveJSONToGitHub("izin.json", listIzin, "Hapus data guru izin via web app");
+
+                    showSuccessToast('Data izin berhasil dihapus & sinkron online!', () => {
+                        renderTabelGuruIzin();
+                        setStatus("");
+                    });
+                } catch(err) {
+                    alert("Gagal menghapus data: " + err.message);
+                    setStatus("");
+                }
             }
         });
     });
@@ -1473,7 +1418,7 @@ function tutupModalPengumuman() {
     document.getElementById('modalPengumuman').style.display = 'none';
 }
 
-function simpanPengumuman(e) {
+async function simpanPengumuman(e) {
     e.preventDefault();
     const pesanBaru = document.getElementById('teksPengumumanInput').value;
     const tanggalSekarang = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -1483,42 +1428,31 @@ function simpanPengumuman(e) {
         tanggal: tanggalSekarang
     };
 
-    localStorage.setItem('anNawaPengumuman', JSON.stringify(dataPengumuman));
-    tutupModalPengumuman();
-    showSuccessToast('Pengumuman berhasil diterbitkan!', () => {
-        muatPengumumanBeranda();
-    });
+    try {
+        setStatus("Menyimpan pengumuman secara online ke GitHub...");
+        // Simpan otomatis ke file pengumuman.json di GitHub
+        await saveJSONToGitHub("pengumuman.json", dataPengumuman, "Update pengumuman via web app");
+        
+        tutupModalPengumuman();
+        showSuccessToast('Pengumuman berhasil diterbitkan & sinkron online!', () => {
+            muatPengumumanBeranda();
+            setStatus("");
+        });
+    } catch(err) {
+        alert("Gagal menyimpan ke GitHub: " + err.message);
+        setStatus("Gagal menyimpan pengumuman.", "error");
+    }
 }
-
 function konfirmasiHapusPengumumanDariModal() {
     tutupModalPengumuman();
     hapusPengumumanLangsung();
 }
 
-function hapusPengumumanLangsung() {
-    const sandiBenar = "bapengun2026";
-    mintaSandiCustom(function(inputSandi) {
-        if (inputSandi === null || inputSandi === "") return;
-        
-        if (inputSandi !== sandiBenar) {
-            alert("Kata sandi salah!");
-            return;
-        }
-
-        mintaKonfirmasiCustom('Yakin ingin menghapus pengumuman ini dari beranda?', function(confirmed) {
-            if (confirmed) {
-                localStorage.removeItem('anNawaPengumuman');
-                showSuccessToast('Pengumuman berhasil dihapus.', () => {
-                    muatPengumumanBeranda();
-                });
-            }
-        });
-    });
-}
 async function muatPengumumanBeranda() {
     try {
-        const response = await fetch('./pengumuman.json?t=' + Date.now(), { cache: "no-store" });
-        const saved = await response.json();
+        const res = await fetch('./pengumuman.json?t=' + Date.now(), { cache: "no-store" });
+        const saved = res.ok ? await res.json() : null;
+        
         const kotak = document.getElementById('kotakPengumumanBeranda');
         const isi = document.getElementById('isiPengumumanBeranda');
         const tgl = document.getElementById('tanggalPengumuman');
@@ -1531,9 +1465,41 @@ async function muatPengumumanBeranda() {
             kotak.style.display = 'none';
         }
     } catch(e) {
-        console.error("Gagal memuat pengumuman:", e);
+        console.log("Belum ada pengumuman online.");
     }
-}  
+}
+
+function hapusPengumumanLangsung() {
+    const sandiBenar = "bapengun2026";
+    mintaSandiCustom(function(inputSandi) {
+        if (inputSandi === null || inputSandi === "") return;
+        
+        if (inputSandi !== sandiBenar) {
+            alert("Kata sandi salah!");
+            return;
+        }
+
+        mintaKonfirmasiCustom('Yakin ingin menghapus pengumuman ini dari beranda?', async function(confirmed) {
+            if (confirmed) {
+                try {
+                    setStatus("Menghapus pengumuman dari server...");
+                    // Kirim data kosong ke pengumuman.json di GitHub
+                    const dataKosong = { pesan: "", tanggal: "" };
+                    await saveJSONToGitHub("pengumuman.json", dataKosong, "Hapus pengumuman via web app");
+
+                    showSuccessToast('Pengumuman berhasil dihapus & sinkron online!', () => {
+                        muatPengumumanBeranda();
+                        setStatus("");
+                    });
+                } catch(err) {
+                    alert("Gagal menghapus pengumuman: " + err.message);
+                    setStatus("");
+                }
+            }
+        });
+    });
+}
+  
 // Jalankan saat halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {
     loadWorkbook();
@@ -1581,10 +1547,5 @@ window.addEventListener('click', function(e) {
     });
   }
 </script>
-  <!-- WADAH IKLAN BANNER ADMOB -->
-<div style="text-align: center; width: 100%; padding: 8px 0; background: #ffffff; position: fixed; bottom: 0; left: 0; z-index: 9999; box-shadow: 0 -2px 5px rgba(0,0,0,0.1);">
-    <!-- Ad Unit ID: ca-app-pub-3143680001009952/2815914680 -->
-    <div id="admob-banner-slot" style="font-size: 11px; color: #777;">Informasi Pesantren / Sponsor</div>
-</div>
 </body>
 </html>
