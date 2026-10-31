@@ -1165,61 +1165,37 @@ function printCurrentView() {
     }
   window.print();
 }
-const GITHUB_CONFIG = {
-    owner: "gunan-awa",
-    repo: "jadwal",
-    branch: "main",
-    token: "masukkan token" 
-};
-  async function saveJSONToGitHub(path, jsonData, commitMessage) {
-    const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
-    
-    // 1. Ambil SHA file lama terlebih dahulu
-    let sha = "";
-    try {
-        const getRes = await fetch(url, {
-            headers: { 
-                "Authorization": `Bearer ${GITHUB_CONFIG.token}`,
-                "Accept": "application/vnd.github.v3+json"
-            }
-        });
-        if (getRes.ok) {
-            const fileData = await getRes.json();
-            sha = fileData.sha;
-        }
-    } catch(e) {
-        console.log("File baru atau belum ada sebelumnya.");
-    }
 
-    // 2. Kirim data baru (di-encode ke Base64 dengan aman)
-    const jsonString = JSON.stringify(jsonData, null, 2);
-    const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
-    
-    const bodyData = {
-        message: commitMessage,
-        content: contentBase64,
-        branch: GITHUB_CONFIG.branch
-    };
-    if (sha) bodyData.sha = sha;
+const GITHUB_STORAGE_URL = "https://script.google.com/macros/s/AKfycbz3P5P9qZ5IyZR368m1vZsdZxj-MG5Ihmd3vg28cBgAhkhh5sYzv48WEH9rthOVHLck/exec";
 
-    const putRes = await fetch(url, {
-        method: "PUT",
+async function saveJSONToGitHub(path, jsonData, commitMessage) {
+    const response = await fetch(GITHUB_STORAGE_URL, {
+        method: "POST",
         headers: {
-            "Authorization": `Bearer ${GITHUB_CONFIG.token}`,
-            "Accept": "application/vnd.github.v3+json",
-            "Content-Type": "application/json"
+            "Content-Type": "text/plain;charset=utf-8"
         },
-        body: JSON.stringify(bodyData)
+        body: JSON.stringify({
+            path: path,
+            content: jsonData,
+            message: commitMessage
+        })
     });
 
-    if (!putRes.ok) {
-        // Ambil rincian pesan error asli dari GitHub
-        const errJson = await putRes.json().catch(() => ({}));
-        const pesanError = errJson.message || ("HTTP " + putRes.status);
-        throw new Error("Gagal dari GitHub: " + pesanError);
+    let result;
+
+    try {
+        result = await response.json();
+    } catch (e) {
+        throw new Error("Respons Apps Script tidak dapat dibaca.");
     }
+
+    if (!result.success) {
+        throw new Error(result.message || "Gagal menyimpan ke GitHub.");
+    }
+
     return true;
 }
+
 /* SISTEM MODAL PASSWORD ELEGAN (PENGGANTI PROMPT BROWSER) */
 let activePasswordCallback = null;
 
