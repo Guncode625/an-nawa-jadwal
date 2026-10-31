@@ -1169,8 +1169,7 @@ const GITHUB_CONFIG = {
     owner: "gunan-awa",
     repo: "jadwal",
     branch: "main",
-    // Token Akses Pribadi GitHub (PAT) milik Ustadz ditaruh di sini untuk izin tulis otomatis
-    token: "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" 
+    token: "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" 
 };
   async function saveJSONToGitHub(path, jsonData, commitMessage) {
     const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
