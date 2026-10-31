@@ -1179,7 +1179,10 @@ const GITHUB_CONFIG = {
     let sha = "";
     try {
         const getRes = await fetch(url, {
-            headers: { "Authorization": `token ${GITHUB_CONFIG.token}` }
+            headers: { 
+                "Authorization": `token ${GITHUB_CONFIG.token}`,
+                "Accept": "application/vnd.github.v3+json"
+            }
         });
         if (getRes.ok) {
             const fileData = await getRes.json();
@@ -1189,8 +1192,9 @@ const GITHUB_CONFIG = {
         console.log("File baru atau belum ada sebelumnya.");
     }
 
-    // 2. Kirim data baru (di-encode ke Base64)
-    const contentBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(jsonData, null, 2))));
+    // 2. Kirim data baru (di-encode ke Base64 dengan aman)
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
     
     const bodyData = {
         message: commitMessage,
@@ -1203,13 +1207,16 @@ const GITHUB_CONFIG = {
         method: "PUT",
         headers: {
             "Authorization": `token ${GITHUB_CONFIG.token}`,
+            "Accept": "application/vnd.github.v3+json",
             "Content-Type": "application/json"
         },
         body: JSON.stringify(bodyData)
     });
 
     if (!putRes.ok) {
-        throw new Error("Gagal menyimpan ke server GitHub.");
+        // Ambil detail error asli dari server GitHub agar terlihat jelas jika ada kendala
+        const errJson = await putRes.json().catch(() => ({}));
+        throw new Error(errJson.message || "Gagal menyimpan ke server GitHub (HTTP " + putRes.status + ").");
     }
     return true;
 }
@@ -1398,22 +1405,30 @@ function hapusDataIzin(index) {
 }
 
 /* FUNGSI PENGUMUMAN */
-function bukaFormPengumuman() {
+async function bukaFormPengumuman() {
     const sandiBenar = "bapeng2026";
-    mintaSandiCustom(function(inputSandi) {
+    mintaSandiCustom(async function(inputSandi) {
         if (inputSandi === null || inputSandi === "") return;
         
         if (inputSandi === sandiBenar) {
-            const saved = JSON.parse(localStorage.getItem('anNawaPengumuman') || '{}');
-            document.getElementById('teksPengumumanInput').value = saved.pesan || '';
-            const modal = document.getElementById('modalPengumuman');
-            modal.style.display = 'flex';
+            try {
+                // Ambil data pengumuman terbaru langsung dari GitHub
+                const res = await fetch('./pengumuman.json?t=' + Date.now(), { cache: "no-store" });
+                const saved = res.ok ? await res.json() : {};
+                
+                document.getElementById('teksPengumumanInput').value = saved.pesan || '';
+                const modal = document.getElementById('modalPengumuman');
+                modal.style.display = 'flex';
+            } catch(e) {
+                document.getElementById('teksPengumumanInput').value = '';
+                const modal = document.getElementById('modalPengumuman');
+                modal.style.display = 'flex';
+            }
         } else {
             alert("Kata sandi salah! Anda tidak memiliki akses untuk membuat pengumuman.");
         }
     });
 }
-
 function tutupModalPengumuman() {
     document.getElementById('modalPengumuman').style.display = 'none';
 }
