@@ -1175,12 +1175,12 @@ const GITHUB_CONFIG = {
   async function saveJSONToGitHub(path, jsonData, commitMessage) {
     const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${path}`;
     
-    // 1. Ambil SHA file lama terlebih dahulu (syarat wajib GitHub API untuk update file)
+    // 1. Ambil SHA file lama terlebih dahulu
     let sha = "";
     try {
         const getRes = await fetch(url, {
             headers: { 
-                "Authorization": `token ${GITHUB_CONFIG.token}`,
+                "Authorization": `Bearer ${GITHUB_CONFIG.token}`,
                 "Accept": "application/vnd.github.v3+json"
             }
         });
@@ -1206,7 +1206,7 @@ const GITHUB_CONFIG = {
     const putRes = await fetch(url, {
         method: "PUT",
         headers: {
-            "Authorization": `token ${GITHUB_CONFIG.token}`,
+            "Authorization": `Bearer ${GITHUB_CONFIG.token}`,
             "Accept": "application/vnd.github.v3+json",
             "Content-Type": "application/json"
         },
@@ -1214,9 +1214,10 @@ const GITHUB_CONFIG = {
     });
 
     if (!putRes.ok) {
-        // Ambil detail error asli dari server GitHub agar terlihat jelas jika ada kendala
+        // Ambil rincian pesan error asli dari GitHub
         const errJson = await putRes.json().catch(() => ({}));
-        throw new Error(errJson.message || "Gagal menyimpan ke server GitHub (HTTP " + putRes.status + ").");
+        const pesanError = errJson.message || ("HTTP " + putRes.status);
+        throw new Error("Gagal dari GitHub: " + pesanError);
     }
     return true;
 }
